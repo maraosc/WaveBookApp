@@ -1,0 +1,82 @@
+/* Paleta de colores */
+:root {
+    --azul-pacifico: #0E305D;
+    --turquesa-coral: #2AB7CA;
+    --arena-suave: #F5E3C3;
+    --oro-arena: #E6A500;
+    --gris-perla: #E0E0E0;
+    --blanco-puro: #FFFFFF;
+}
+
+/* NAVBAR */
+.custom-navbar {
+    background-color: var(--azul-pacifico);
+    padding: 0.8rem 1rem;
+}
+
+/* LOGO */
+.logo {
+    height: 60px;  
+}
+
+.brand-text {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+}
+
+/* LINKS */
+.custom-navbar .nav-link {
+    color: var(--blanco-puro);
+    font-weight: 500;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    padding: 0.5rem 0.8rem;
+}
+
+.custom-navbar .nav-link:hover {
+    color: var(--turquesa-coral);
+}
+
+.custom-navbar .nav-link.active {
+    color: var(--oro-arena);
+    border-bottom: 2px solid var(--oro-arena);
+}
+
+/* BOTÓN */
+.btn-custom {
+    background-color: var(--turquesa-coral);
+    color: var(--blanco-puro);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 25px; 
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-custom:hover {
+    background-color: var(--oro-arena);
+    color: var(--azul-pacifico);
+    transform: scale(1.05);
+}
+
+
+/* CARRUSEL */
+.carousel-item img {
+    max-height: 600px; /* ajusta la altura */
+    object-fit: cover; /* mantiene proporción */
+}
+
+.bg-caption {
+    background: rgba(14, 48, 93, 0.6); /* Azul Pacífico semi-transparente */
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+
+.carousel-caption h5 {
+    color: var(--oro-arena);
+    font-weight: bold;
+    font-size: 1.8rem;
+}
+
+.carousel-caption p {
+    color: var(--blanco-puro);
+    font-size: 1.1rem;
+}
