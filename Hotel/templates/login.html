@@ -11,26 +11,26 @@
     <div class="card login-card shadow-lg">
         <div class="card-body p-5">
             <h3 class="text-center mb-4 fw-bold" style="color: var(--azul-pacifico);">Iniciar Sesión</h3>
+        <form method="post">
+            {% csrf_token %}
             
-            <!-- Formulario -->
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="email" class="form-label">Correo electrónico</label>
-                    <input type="email" class="form-control" id="email" name="email" placeholder="ejemplo@correo.com" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="password" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="********" required>
-                </div>
-                
-                <button type="submit" class="btn btn-custom w-100">Ingresar</button>
-            </form>
-            
-            <!-- Link de registro -->
+            <div class="mb-3">
+                <label for="email" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="email" name="email"
+                      value="{{ email|default:'' }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn btn-custom w-100">Ingresar</button>
+        </form>
+
+
             <p class="text-center mt-3 text-footer">
-                ¿No tienes cuenta? 
+                ¿No tienes cuenta?
                 <a href="{% url 'register' %}" class="register-link">Regístrate aquí</a>
             </p>
         </div>
