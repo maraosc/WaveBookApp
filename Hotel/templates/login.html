@@ -5,29 +5,42 @@
 
 {% block content %}
 <div class="login-container d-flex align-items-center justify-content-center">
-    <!-- Overlay azul -->
     <div class="overlay"></div>
 
     <div class="card login-card shadow-lg">
         <div class="card-body p-5">
             <h3 class="text-center mb-4 fw-bold" style="color: var(--azul-pacifico);">Iniciar Sesión</h3>
-        <form method="post">
-            {% csrf_token %}
-            
-            <div class="mb-3">
-                <label for="email" class="form-label">Correo electrónico</label>
-                <input type="email" class="form-control" id="email" name="email"
-                      value="{{ email|default:'' }}" required>
-            </div>
 
-            <div class="mb-3">
-                <label for="password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
+            <form method="post" novalidate>
+                {% csrf_token %}
 
-            <button type="submit" class="btn btn-custom w-100">Ingresar</button>
-        </form>
+                <!-- Errores generales -->
+                {% if form.non_field_errors %}
+                    <div class="text-danger small mb-3">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
 
+                <!-- Email -->
+                <div class="mb-3">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {% for error in form.email.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Contraseña -->
+                <div class="mb-3">
+                    {{ form.password.label_tag }}
+                    {{ form.password }}
+                    {% for error in form.password.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-custom w-100">Ingresar</button>
+            </form>
 
             <p class="text-center mt-3 text-footer">
                 ¿No tienes cuenta?

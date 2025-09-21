@@ -22,14 +22,14 @@ class HuespedForm(forms.ModelForm):
             "fecha_nacimiento", "nacionalidad"
         ]
         widgets = {
-            "nombre": forms.TextInput(attrs={"class": "form-control"}),
-            "apellido": forms.TextInput(attrs={"class": "form-control"}),
-            "email": forms.EmailInput(attrs={"class": "form-control"}),
-            "telefono": forms.TextInput(attrs={"class": "form-control"}),
+            "nombre": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre"}),
+            "apellido": forms.TextInput(attrs={"class": "form-control", "placeholder": "Apellido"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Correo electrónico"}),
+            "telefono": forms.TextInput(attrs={"class": "form-control", "placeholder": "Teléfono"}),
             "documento_tipo": forms.Select(attrs={"class": "form-control"}),
-            "documento_numero": forms.TextInput(attrs={"class": "form-control"}),
+            "documento_numero": forms.TextInput(attrs={"class": "form-control", "placeholder": "Número de documento"}),
             "fecha_nacimiento": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
-            "nacionalidad": forms.TextInput(attrs={"class": "form-control"}),
+            "nacionalidad": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nacionalidad"}),
         }
 
     def clean(self):
@@ -39,3 +39,20 @@ class HuespedForm(forms.ModelForm):
         if password1 != password2:
             self.add_error("password2", "Las contraseñas no coinciden")
         return cleaned_data
+
+
+class LoginForm(forms.Form):
+    email = forms.EmailField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "ejemplo@correo.com"
+        })
+    )
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "********"
+        })
+    )
