@@ -1,15 +1,37 @@
 from django.db import models
 
 
+from django.db import models
+
+
+from django.contrib.auth.hashers import make_password
+from django.db import models
+
+
 class Huesped(models.Model):
+    TIPO_DOCUMENTO_CHOICES = [
+        ("DNI", "DNI / rut"),
+        ("PASAPORTE", "Pasaporte"),
+    ]
+
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     email = models.EmailField(unique=True, max_length=150)
     telefono = models.CharField(max_length=30, blank=True, null=True)
-    documento_tipo = models.CharField(max_length=30, blank=True, null=True)
+    documento_tipo = models.CharField(
+        max_length=30, choices=TIPO_DOCUMENTO_CHOICES, null=True)
     documento_numero = models.CharField(
         max_length=50, unique=True, blank=True, null=True)
+    fecha_nacimiento = models.DateField(blank=True, null=True)
+    nacionalidad = models.CharField(max_length=100, blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
+    password = models.CharField(max_length=255)
+
+    def save(self, *args, **kwargs):
+        # Asegurar que la contraseña se guarde hasheada
+        if self.password and not self.password.startswith("pbkdf2_"):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
