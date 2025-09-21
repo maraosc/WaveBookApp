@@ -124,4 +124,48 @@
     color: var(--gris-perla);
     font-size: 0.9rem;
 }
+/* LOGIN */
+.login-container {
+    position: relative;
+    min-height: 100vh; /* ocupa toda la pantalla */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url("../img/login-bg.jpg") no-repeat center center/cover; /* imagen de fondo */
+}
 
+/* Capa azul transparente */
+.login-container .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(14, 48, 93, 0.7); /* Azul Pacífico con transparencia */
+    z-index: 1;
+}
+
+/* Card de login */
+.login-card {
+    position: relative;
+    z-index: 2; /* sobre el overlay */
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    max-width: 400px;
+    width: 100%;
+}
+
+.register-link {
+    color: var(--turquesa-coral);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.register-link:hover {
+    color: var(--oro-arena);
+    text-decoration: underline;
+}
+
+.text-center.mt-3.text-footer {
+  color: var(--azul-pacifico);       
+}
