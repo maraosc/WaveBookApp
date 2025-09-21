@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% load static %}   
+{% load static %}
 
 {% block title %}Inicio - Hotel Pacific Reef{% endblock %}
 
 {% block content %}
-<div id="hotelCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+<div id="hotelCarousel" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#hotelCarousel" data-bs-slide-to="0" class="active"></button>
         <button type="button" data-bs-target="#hotelCarousel" data-bs-slide-to="1"></button>
         <button type="button" data-bs-target="#hotelCarousel" data-bs-slide-to="2"></button>
     </div>
 
-    <div class="carousel-inner rounded-3">
+    <div class="carousel-inner">
         <!-- Slide 1 -->
         <div class="carousel-item active">
             <img src="{% static 'img/carrusel-inicio-1.png' %}" class="d-block w-100" alt="Vista del Hotel">

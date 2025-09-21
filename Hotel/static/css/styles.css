@@ -16,7 +16,7 @@
 
 /* LOGO */
 .logo {
-    height: 60px;  
+    height: 70px;  
 }
 
 .brand-text {
@@ -41,6 +41,16 @@
     border-bottom: 2px solid var(--oro-arena);
 }
 
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-toggler-icon {
+    background-color: transparent;
+    filter: invert(100%);
+    color: var(--blanco-puro);
+}
+
 /* BOTÓN */
 .btn-custom {
     background-color: var(--turquesa-coral);
@@ -57,15 +67,15 @@
     transform: scale(1.05);
 }
 
-
-/* CARRUSEL */
+/* CARRUSEL FULL WIDTH */
 .carousel-item img {
-    max-height: 600px; /* ajusta la altura */
-    object-fit: cover; /* mantiene proporción */
+    width: 100vw;          /* ocupa todo el ancho */
+    max-height: 800px;    /* ajusta la altura máxima del carrusel */
+    object-fit: cover;   
 }
 
 .bg-caption {
-    background: rgba(14, 48, 93, 0.6); /* Azul Pacífico semi-transparente */
+    background: rgba(14, 48, 93, 0.6); /* Azul Pacífico semitransparente */
     border-radius: 8px;
     padding: 10px 20px;
 }
@@ -73,10 +83,45 @@
 .carousel-caption h5 {
     color: var(--oro-arena);
     font-weight: bold;
-    font-size: 1.8rem;
+    font-size: 2rem;
 }
 
 .carousel-caption p {
     color: var(--blanco-puro);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
+
+
+/* FOOTER */
+.custom-footer {
+    background-color: var(--azul-pacifico);
+    color: var(--blanco-puro);
+    padding-top: 2rem;
+}
+
+.custom-footer h5 {
+    color: var(--oro-arena);
+    margin-bottom: 1rem;
+}
+
+.text-footer {
+    color: var(--gris-perla);
+    font-size: 0.95rem;
+}
+
+.footer-link {
+    color: var(--blanco-puro);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: var(--turquesa-coral);
+}
+
+.footer-bottom {
+    background-color: #09213d; /* más oscuro que el azul pacífico */
+    color: var(--gris-perla);
+    font-size: 0.9rem;
+}
+

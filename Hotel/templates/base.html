@@ -12,50 +12,88 @@
 </head>
 <body>
     <!-- HEADER -->
-    <header>
-        <nav class="navbar navbar-expand-lg custom-navbar shadow-sm">
-            <div class="container d-flex justify-content-between align-items-center">
-                
-                <!-- LOGO -->
-                <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="{% static 'img/logo.png' %}" alt="Hotel Pacific Reef" class="logo me-2">
-                    <span class="fw-bold text-white brand-text">Pacific Reef</span>
-                </a>
+ <header>
+    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar shadow-sm">
+        <div class="container">
+            
+            <!-- LOGO -->
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Hotel Pacific Reef" class="logo me-2">
+            </a>
 
-                <!-- BOTONES -->
-                <div class="d-flex align-items-center">
-                    <ul class="navbar-nav d-flex flex-row align-items-center">
-                        <li class="nav-item mx-2">
-                            <a class="nav-link active" href="#">Inicio</a>
-                        </li>
-                        <li class="nav-item mx-2">
-                            <a class="nav-link" href="#">Habitaciones</a>
-                        </li>
-                        <li class="nav-item mx-2">
-                            <a class="nav-link" href="#">Reservas</a>
-                        </li>
-                        <li class="nav-item mx-2">
-                            <a class="nav-link" href="#">Contacto</a>
-                        </li>
-                        <li class="nav-item ms-3">
-                            <a class="btn btn-custom" href="#">Ingresar</a>
-                        </li>
-                    </ul>
-                </div>
+            <!-- Botón responsive -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                <!-- Botón responsive -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <!-- LINKS (dentro del collapse para móvil) -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'home' %}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Habitaciones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Reservas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contacto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-custom ms-lg-3 mt-2 mt-lg-0" href="#">Ingresar</a>
+                    </li>
+                </ul>
             </div>
-        </nav>
-    </header>
+
+        </div>
+    </nav>
+</header>
+
 
     <!-- CONTENIDO -->
-    <main class="container mt-4">
-        {% block content %}{% endblock %}
-    </main>
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+     <!-- FOOTER -->
+    <footer class="custom-footer text-center text-lg-start mt-5">
+        <div class="container p-4">
+            <div class="row">
+                <!-- Columna 1 -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="text-uppercase text-white">Hotel Pacific Reef</h5>
+                    <p class="text-footer">
+                        Lujo y confort frente al mar. Disfruta de una estadía inolvidable en nuestras habitaciones premium y servicios exclusivos.
+                    </p>
+                </div>
+                <!-- Columna 2 -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="text-uppercase text-white">Enlaces</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="#" class="footer-link">Inicio</a></li>
+                        <li><a href="#" class="footer-link">Habitaciones</a></li>
+                        <li><a href="#" class="footer-link">Reservas</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                <!-- Columna 3 -->
+                <div class="col-lg-4 col-md-12 mb-4">
+                    <h5 class="text-uppercase text-white">Contáctanos</h5>
+                    <p class="text-footer">📍 Av. Costanera 123, Antofagasta</p>
+                    <p class="text-footer">📞 +56 9 8765 4321</p>
+                    <p class="text-footer">✉ contacto@pacificreef.cl</p>
+                </div>
+            </div>
+        </div>
+        <!-- Línea inferior -->
+        <div class="text-center p-3 footer-bottom">
+            © 2025 Hotel Pacific Reef. Todos los derechos reservados.
+        </div>
+    </footer>
+   
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
