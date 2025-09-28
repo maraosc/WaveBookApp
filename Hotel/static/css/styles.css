@@ -53,14 +53,26 @@
 }
 
 /* BOTÓN */
-.btn-custom {
-    background-color: var(--turquesa-coral);
-    color: var(--blanco-puro);
+.btn-turquesa-login {
+    background-color: #40E0D0;  /* turquesa */
+    color: #fff !important;     /* texto blanco */
     font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 25px; 
+    padding: 0.6rem 2rem;
+    border-radius: 50px;
     transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none !important;
 }
+
+.btn-turquesa-login:hover {
+    background-color: #1abc9c; /* turquesa más oscuro */
+    transform: scale(1.05);
+}
+
+
 
 .btn-custom:hover {
     background-color: var(--oro-arena);
@@ -229,4 +241,26 @@
     background-color: var(--oro-arena);
     color: var(--azul-pacifico);
     transform: scale(1.05);
+}
+
+/* Colores corporativos */
+.text-primary {
+  color: #0e305d !important; /* Azul corporativo */
+}
+
+.btn-warning {
+  background-color: var(--oro-arena);
+  border: none;
+}
+.btn-warning:hover {
+  background-color: #c98c00;
+}
+
+/* Ajuste de imagen */
+.promo-img {
+  width: 80%;        
+  max-width:200px; 
+  height: auto;      
+  object-fit: cover;  
+  border-radius: 50px;  
 }

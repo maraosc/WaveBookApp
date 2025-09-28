@@ -9,49 +9,81 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Estilos propios -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <!-- Iconos Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
 </head>
 <body>
     <!-- HEADER -->
- <header>
-    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar shadow-sm">
-        <div class="container">
-            
-            <!-- LOGO -->
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <img src="{% static 'img/logo.png' %}" alt="Hotel Pacific Reef" class="logo me-2">
-            </a>
+<header>
+  <nav class="navbar navbar-expand-lg navbar-dark custom-navbar shadow-sm py-3">
+    <div class="container">
 
-            <!-- Botón responsive -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+      <!-- LOGO -->
+      <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+        <img src="{% static 'img/logo.png' %}" alt="Hotel Pacific Reef" class="logo me-2" style="height:60px;">
+      </a>
 
-            <!-- LINKS (dentro del collapse para móvil) -->
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'home' %}">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Habitaciones</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Reservas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Contacto</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-custom ms-lg-3 mt-2 mt-lg-0" href="{% url 'login' %}">Ingresar</a>
-                    </li>
-                </ul>
-            </div>
+      <!-- Botón responsive -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        </div>
-    </nav>
+      <!-- LINKS -->
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav align-items-lg-center gap-lg-4">
+          <li class="nav-item">
+            <a class="nav-link active" href="{% url 'home' %}">Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Habitaciones</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Reservas</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Contacto</a>
+          </li>
+
+          <!-- Sesión -->
+          {% if request.session.huesped_id %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenu"
+                 role="button" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle fs-5 me-2"></i> {{ request.session.huesped_nombre }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="bi bi-bookmark-check me-2"></i> Mis Reservas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="bi bi-gear me-2"></i> Perfil
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                  </a>
+                </li>
+              </ul>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="btn btn-warning ms-lg-3 px-4 rounded-pill d-flex align-items-center" href="{% url 'login' %}">
+                <i class="bi bi-person-circle fs-5 me-2"></i> Ingresar
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
 </header>
-
 
     <!-- CONTENIDO -->
 <main>

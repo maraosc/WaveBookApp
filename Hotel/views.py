@@ -34,15 +34,29 @@ def login_view(request):
     return render(request, "login.html", {"form": form})
 
 
+def logout_view(request):
+    request.session.flush()  # elimina toda la sesión
+    messages.info(request, "Has cerrado sesión 👋")
+    return redirect("home")
+
+
 def register_view(request):
     if request.method == "POST":
         form = HuespedForm(request.POST)
         if form.is_valid():
-            huesped = form.save(commit=False)  # no guarda todavía
-            # se hashea en save()
+            huesped = form.save(commit=False)
             huesped.password = form.cleaned_data["password1"]
             huesped.save()
-            return redirect("login")  # redirige al login tras registro exitoso
+
+            # Iniciar sesión automáticamente
+            request.session["huesped_id"] = huesped.id
+            request.session["huesped_nombre"] = huesped.nombre
+
+            # Mensaje de bienvenida
+            messages.success(
+                request, f"¡Bienvenido {huesped.nombre} 👋 Tu cuenta fue creada con éxito!")
+
+            return redirect("home")  # va al inicio con sesión iniciada
     else:
         form = HuespedForm()
 
