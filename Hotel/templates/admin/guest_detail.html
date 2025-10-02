@@ -1,0 +1,189 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}{{ guest.nombre }} {{ guest.apellido }} - Admin WaveBook{% endblock %}
+{% block page_title %}Detalle del Huésped{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Guest Information Card -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user me-2"></i>Información Personal
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">{{ guest.nombre }} {{ guest.apellido }}</h4>
+                    <p class="text-muted">ID: {{ guest.id }}</p>
+                </div>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ guest.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Teléfono:</strong></td>
+                        <td>{{ guest.telefono|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Documento:</strong></td>
+                        <td>
+                            {% if guest.documento_tipo and guest.documento_numero %}
+                                {{ guest.documento_tipo }}: {{ guest.documento_numero }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fecha Nacimiento:</strong></td>
+                        <td>{{ guest.fecha_nacimiento|date:"d/m/Y"|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nacionalidad:</strong></td>
+                        <td>{{ guest.nacionalidad|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fecha Registro:</strong></td>
+                        <td>{{ guest.fecha_registro|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                </table>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="editGuest()">
+                        <i class="fas fa-edit me-2"></i>Editar Información
+                    </button>
+                    <a href="{% url 'admin_guests_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Reservations History -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar-check me-2"></i>Historial de Reservas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if reservas %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Fecha Inicio</th>
+                                    <th>Fecha Fin</th>
+                                    <th>Estado</th>
+                                    <th>Total</th>
+                                    <th>Creada</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reserva in reservas %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ reserva.codigo_reserva }}</strong>
+                                    </td>
+                                    <td>{{ reserva.fecha_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ reserva.fecha_fin|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if reserva.estado == 'Confirmada' %}bg-success
+                                            {% elif reserva.estado == 'Pendiente' %}bg-warning
+                                            {% elif reserva.estado == 'En curso' %}bg-info
+                                            {% elif reserva.estado == 'Completada' %}bg-primary
+                                            {% elif reserva.estado == 'Cancelada' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ reserva.estado }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>${{ reserva.total|floatformat:0 }}</strong>
+                                    </td>
+                                    <td>{{ reserva.fecha_creacion|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'admin_reservation_detail' reserva.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Reservation Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Total Reservas</h6>
+                                    <h4 class="text-primary">{{ reservas.count }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Completadas</h6>
+                                    <h4 class="text-success">
+                                        {{ reservas|length|default:0 }}
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Pendientes</h6>
+                                    <h4 class="text-warning">
+                                        {{ reservas|length|default:0 }}
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Gasto Total</h6>
+                                    <h4 class="text-info">
+                                        ${% for reserva in reservas %}{{ reserva.total|add:0 }}{% endfor %}
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-calendar-times fa-4x mb-3"></i>
+                        <h5>Sin Reservas</h5>
+                        <p>Este huésped no tiene reservas registradas.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editGuest() {
+    alert('Función de edición en desarrollo');
+}
+</script>
+{% endblock %}

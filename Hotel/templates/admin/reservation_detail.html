@@ -1,0 +1,302 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Reserva {{ reservation.codigo_reserva }} - Admin WaveBook{% endblock %}
+{% block page_title %}Detalle de Reserva{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Reservation Information -->
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar-check me-2"></i>Información de Reserva
+                </h6>
+                <span class="badge 
+                    {% if reservation.estado == 'Confirmada' %}bg-success
+                    {% elif reservation.estado == 'Pendiente' %}bg-warning text-dark
+                    {% elif reservation.estado == 'En curso' %}bg-info
+                    {% elif reservation.estado == 'Completada' %}bg-primary
+                    {% elif reservation.estado == 'Cancelada' %}bg-danger
+                    {% else %}bg-secondary{% endif %} fs-6">
+                    {{ reservation.estado }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">{{ reservation.codigo_reserva }}</h4>
+                    <p class="text-muted">Reserva #{{ reservation.id }}</p>
+                </div>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Código:</strong></td>
+                        <td>{{ reservation.codigo_reserva }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Huésped:</strong></td>
+                        <td>
+                            <a href="{% url 'admin_guest_detail' reservation.huesped.id %}" 
+                               class="text-decoration-none">
+                                {{ reservation.huesped.nombre }} {{ reservation.huesped.apellido }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ reservation.huesped.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Check-in:</strong></td>
+                        <td>{{ reservation.fecha_inicio|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Check-out:</strong></td>
+                        <td>{{ reservation.fecha_fin|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Noches:</strong></td>
+                        <td>
+                            {% with reservation.fecha_fin|timesince:reservation.fecha_inicio as duration %}
+                                {% if duration %}{{ duration|slice:":1" }}{% else %}1{% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Estado:</strong></td>
+                        <td>
+                            <span class="badge 
+                                {% if reservation.estado == 'Confirmada' %}bg-success
+                                {% elif reservation.estado == 'Pendiente' %}bg-warning text-dark
+                                {% elif reservation.estado == 'En curso' %}bg-info
+                                {% elif reservation.estado == 'Completada' %}bg-primary
+                                {% elif reservation.estado == 'Cancelada' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ reservation.estado }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total:</strong></td>
+                        <td><strong class="text-success">${{ reservation.total|floatformat:0 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Creada:</strong></td>
+                        <td>{{ reservation.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                </table>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 mt-4">
+                    {% if reservation.estado == 'Pendiente' %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="confirm" 
+                                class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-check me-2"></i>Confirmar Reserva
+                        </button>
+                    </form>
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="cancel" 
+                                class="btn btn-danger w-100 mb-2"
+                                onclick="return confirm('¿Está seguro de cancelar esta reserva?')">
+                            <i class="fas fa-times me-2"></i>Cancelar Reserva
+                        </button>
+                    </form>
+                    {% elif reservation.estado == 'Confirmada' %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="checkin" 
+                                class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-sign-in-alt me-2"></i>Realizar Check-in
+                        </button>
+                    </form>
+                    {% elif reservation.estado == 'En curso' %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="checkout" 
+                                class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-sign-out-alt me-2"></i>Realizar Check-out
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{% url 'admin_reservations_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Reserved Rooms -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bed me-2"></i>Habitaciones Reservadas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if rooms %}
+                    <div class="row">
+                        {% for room_reservation in rooms %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-bed me-2"></i>
+                                        Habitación {{ room_reservation.habitacion.numero }}
+                                    </h6>
+                                    <p class="card-text">
+                                        <strong>Categoría:</strong> {{ room_reservation.habitacion.categoria }}<br>
+                                        <strong>Piso:</strong> {{ room_reservation.habitacion.piso }}<br>
+                                        <strong>Precio/noche:</strong> ${{ room_reservation.precio_por_noche|floatformat:0 }}
+                                    </p>
+                                    <a href="{% url 'admin_room_detail' room_reservation.habitacion.id %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>Ver Habitación
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-bed fa-3x mb-3"></i>
+                        <h6>Sin habitaciones asignadas</h6>
+                        <p>No hay habitaciones asignadas a esta reserva.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-credit-card me-2"></i>Información de Pagos
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Método</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.fecha_pago|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ payment.metodo_pago }}</td>
+                                    <td><strong>${{ payment.monto|floatformat:0 }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-success">Completado</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-info">
+                                    <td colspan="2"><strong>Total Pagado:</strong></td>
+                                    <td colspan="2">
+                                        <strong>
+                                            ${% for payment in payments %}{{ payment.monto|add:0 }}{% endfor %}
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-credit-card fa-3x mb-3"></i>
+                        <h6>Sin pagos registrados</h6>
+                        <p>No hay pagos asociados a esta reserva.</p>
+                        <button class="btn btn-primary" onclick="addPayment()">
+                            <i class="fas fa-plus me-2"></i>Registrar Pago
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-info w-100" onclick="sendEmail()">
+                            <i class="fas fa-envelope fa-2x mb-2 d-block"></i>
+                            Enviar Email
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-success w-100" onclick="generateTicket()">
+                            <i class="fas fa-ticket-alt fa-2x mb-2 d-block"></i>
+                            Generar Ticket
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" onclick="editReservation()">
+                            <i class="fas fa-edit fa-2x mb-2 d-block"></i>
+                            Editar Reserva
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-warning w-100" onclick="generateInvoice()">
+                            <i class="fas fa-file-invoice fa-2x mb-2 d-block"></i>
+                            Generar Factura
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addPayment() {
+    alert('Función de agregar pago en desarrollo');
+}
+
+function sendEmail() {
+    alert('Función de envío de email en desarrollo');
+}
+
+function generateTicket() {
+    alert('Función de generar ticket en desarrollo');
+}
+
+function editReservation() {
+    alert('Función de edición de reserva en desarrollo');
+}
+
+function generateInvoice() {
+    alert('Función de generar factura en desarrollo');
+}
+</script>
+{% endblock %}

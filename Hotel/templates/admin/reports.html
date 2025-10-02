@@ -1,0 +1,341 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Reportes - Admin WaveBook{% endblock %}
+{% block page_title %}Reportes y Estadísticas{% endblock %}
+
+{% block content %}
+<!-- Date Range Filter -->
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3" 
+                 style="background: linear-gradient(135deg, var(--azul-pacifico), var(--turquesa-coral)); color: white;">
+                <h6 class="m-0 font-weight-bold" style="color: white;">
+                    <i class="fas fa-calendar me-2"></i>Rango de Fechas
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label">Fecha Inicio</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label">Fecha Fin</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn me-2" 
+                                style="background-color: var(--turquesa-coral); border-color: var(--turquesa-coral); color: white;">
+                            <i class="fas fa-chart-bar me-2"></i>Generar Reporte
+                        </button>
+                        <button type="button" class="btn" onclick="exportReport()" 
+                                style="background-color: var(--oro-arena); border-color: var(--oro-arena); color: var(--azul-pacifico);">
+                            <i class="fas fa-download me-2"></i>Exportar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue and Occupancy -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-dollar-sign me-2"></i>Ingresos
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="h2 mb-3 text-success">
+                    ${{ total_revenue|floatformat:0 }}
+                </div>
+                <p class="text-muted">
+                    Período: {{ start_date|date:"d/m/Y" }} - {{ end_date|date:"d/m/Y" }}
+                </p>
+                
+                <div class="mt-4">
+                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bed me-2"></i>Tasa de Ocupación
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="position-relative">
+                    <canvas id="occupancyChart" width="200" height="200"></canvas>
+                    <div class="position-absolute top-50 start-50 translate-middle">
+                        <div class="h2 text-info">{{ occupancy_rate }}%</div>
+                        <small class="text-muted">Ocupación</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Rooms -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-star me-2"></i>Habitaciones Más Populares
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if popular_rooms %}
+                    <div class="list-group list-group-flush">
+                        {% for room in popular_rooms %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Habitación {{ room.numero }}</h6>
+                                <small class="text-muted">{{ room.categoria }} - Piso {{ room.piso }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ room.reservation_count }} reservas
+                                </span>
+                                <div class="small text-muted">${{ room.precio_diario|floatformat:0 }}/noche</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-bed fa-3x mb-3"></i>
+                        <p>No hay datos de habitaciones populares para este período</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-credit-card me-2"></i>Métodos de Pago
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="paymentMethodsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Payments -->
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-receipt me-2"></i>Pagos Recientes
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Reserva</th>
+                                    <th>Huésped</th>
+                                    <th>Método</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.fecha_pago|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'admin_reservation_detail' payment.reserva.id %}" 
+                                           class="text-decoration-none">
+                                            {{ payment.reserva.codigo_reserva }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'admin_guest_detail' payment.reserva.huesped.id %}" 
+                                           class="text-decoration-none">
+                                            {{ payment.reserva.huesped.nombre }} {{ payment.reserva.huesped.apellido }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ payment.metodo_pago }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">${{ payment.monto|floatformat:0 }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-receipt fa-3x mb-3"></i>
+                        <p>No hay pagos registrados para este período</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Statistics -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Ingresos</h6>
+                        <h4 class="mb-0">${{ total_revenue|floatformat:0 }}</h4>
+                    </div>
+                    <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Ocupación</h6>
+                        <h4 class="mb-0">{{ occupancy_rate }}%</h4>
+                    </div>
+                    <i class="fas fa-chart-pie fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Pagos</h6>
+                        <h4 class="mb-0">{{ payments.count|default:0 }}</h4>
+                    </div>
+                    <i class="fas fa-credit-card fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Ingreso Promedio</h6>
+                        <h4 class="mb-0">
+                            {% if payments.count > 0 %}
+                                ${% widthratio total_revenue payments.count 1 %}
+                            {% else %}
+                                $0
+                            {% endif %}
+                        </h4>
+                    </div>
+                    <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+            label: 'Ingresos Diarios',
+            data: [65000, 45000, 80000, 81000, 56000, 55000, 40000], // Sample data
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Occupancy Chart
+const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+const occupancyChart = new Chart(occupancyCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Ocupadas', 'Disponibles'],
+        datasets: [{
+            data: [{{ occupancy_rate }}, {{ occupancy_rate|add:"-100"|abs }}],
+            backgroundColor: ['#36A2EB', '#E5E5E5'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '70%',
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Payment Methods Chart
+const paymentCtx = document.getElementById('paymentMethodsChart').getContext('2d');
+const paymentChart = new Chart(paymentCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Efectivo', 'Tarjeta', 'Transferencia', 'PayPal'],
+        datasets: [{
+            label: 'Pagos',
+            data: [12, 19, 8, 5], // Sample data
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+function exportReport() {
+    alert('Función de exportación en desarrollo');
+}
+</script>
+{% endblock %}

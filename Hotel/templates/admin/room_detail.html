@@ -1,0 +1,281 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Habitación {{ room.numero }} - Admin WaveBook{% endblock %}
+{% block page_title %}Habitación {{ room.numero }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Room Information -->
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bed me-2"></i>Información de la Habitación
+                </h6>
+                <span class="badge 
+                    {% if room.estado == 'Disponible' %}bg-success
+                    {% elif room.estado == 'Ocupada' %}bg-danger
+                    {% elif room.estado == 'Mantenimiento' %}bg-warning
+                    {% else %}bg-secondary{% endif %} fs-6">
+                    {{ room.estado }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-bed fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">Habitación {{ room.numero }}</h4>
+                    <p class="text-muted">{{ room.categoria }}</p>
+                </div>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Número:</strong></td>
+                        <td>{{ room.numero }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Piso:</strong></td>
+                        <td>{{ room.piso }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Categoría:</strong></td>
+                        <td>{{ room.categoria }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Estado:</strong></td>
+                        <td>
+                            <span class="badge 
+                                {% if room.estado == 'Disponible' %}bg-success
+                                {% elif room.estado == 'Ocupada' %}bg-danger
+                                {% elif room.estado == 'Mantenimiento' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ room.estado }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Precio/noche:</strong></td>
+                        <td><strong class="text-primary">${{ room.precio_diario|floatformat:0 }}</strong></td>
+                    </tr>
+                </table>
+
+                {% if room.descripcion %}
+                <div class="mt-3">
+                    <h6><strong>Descripción:</strong></h6>
+                    <p class="text-muted">{{ room.descripcion }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Status Change Form -->
+                <div class="mt-4">
+                    <h6><strong>Cambiar Estado:</strong></h6>
+                    <form method="post" class="d-grid gap-2">
+                        {% csrf_token %}
+                        <div class="btn-group" role="group">
+                            {% if room.estado != 'Disponible' %}
+                            <button type="submit" name="status" value="Disponible" 
+                                    class="btn btn-success btn-sm">
+                                <i class="fas fa-check me-1"></i>Disponible
+                            </button>
+                            {% endif %}
+                            
+                            {% if room.estado != 'Ocupada' %}
+                            <button type="submit" name="status" value="Ocupada" 
+                                    class="btn btn-danger btn-sm">
+                                <i class="fas fa-user me-1"></i>Ocupada
+                            </button>
+                            {% endif %}
+                            
+                            {% if room.estado != 'Mantenimiento' %}
+                            <button type="submit" name="status" value="Mantenimiento" 
+                                    class="btn btn-warning btn-sm">
+                                <i class="fas fa-tools me-1"></i>Mantenimiento
+                            </button>
+                            {% endif %}
+                            
+                            {% if room.estado != 'Fuera de servicio' %}
+                            <button type="submit" name="status" value="Fuera de servicio" 
+                                    class="btn btn-secondary btn-sm">
+                                <i class="fas fa-ban me-1"></i>Fuera de Servicio
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{% url 'admin_rooms_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Current Reservations -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar-check me-2"></i>Reservas Actuales
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if current_reservations %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Código Reserva</th>
+                                    <th>Huésped</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Estado</th>
+                                    <th>Precio/noche</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reserva_hab in current_reservations %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ reserva_hab.reserva.codigo_reserva }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ reserva_hab.reserva.huesped.nombre }} {{ reserva_hab.reserva.huesped.apellido }}
+                                    </td>
+                                    <td>{{ reserva_hab.reserva.fecha_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ reserva_hab.reserva.fecha_fin|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if reserva_hab.reserva.estado == 'Confirmada' %}bg-success
+                                            {% elif reserva_hab.reserva.estado == 'Pendiente' %}bg-warning
+                                            {% elif reserva_hab.reserva.estado == 'En curso' %}bg-info
+                                            {% elif reserva_hab.reserva.estado == 'Completada' %}bg-primary
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ reserva_hab.reserva.estado }}
+                                        </span>
+                                    </td>
+                                    <td>${{ reserva_hab.precio_por_noche|floatformat:0 }}</td>
+                                    <td>
+                                        <a href="{% url 'admin_reservation_detail' reserva_hab.reserva.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                        <a href="{% url 'admin_guest_detail' reserva_hab.reserva.huesped.id %}" 
+                                           class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-user"></i> Huésped
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <h5>Sin Reservas Actuales</h5>
+                        <p>Esta habitación no tiene reservas activas en este momento.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Room Catalog/Features -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-list me-2"></i>Características y Equipamiento
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for catalogo in room.catalogos.all %}
+                    <div class="row mb-3">
+                        {% if catalogo.foto_url %}
+                        <div class="col-md-4">
+                            <img src="{{ catalogo.foto_url }}" class="img-fluid rounded" alt="Habitación {{ room.numero }}">
+                        </div>
+                        {% endif %}
+                        <div class="col-md-8">
+                            {% if catalogo.equipamiento %}
+                            <h6>Equipamiento:</h6>
+                            <p>{{ catalogo.equipamiento }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-image fa-3x mb-3"></i>
+                        <h6>Sin información de catálogo</h6>
+                        <p>No hay información adicional disponible para esta habitación.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" onclick="addReservation()">
+                            <i class="fas fa-plus fa-2x mb-2 d-block"></i>
+                            Nueva Reserva
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-info w-100" onclick="viewCalendar()">
+                            <i class="fas fa-calendar fa-2x mb-2 d-block"></i>
+                            Ver Calendario
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-success w-100" onclick="editRoom()">
+                            <i class="fas fa-edit fa-2x mb-2 d-block"></i>
+                            Editar Habitación
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-warning w-100" onclick="printReport()">
+                            <i class="fas fa-print fa-2x mb-2 d-block"></i>
+                            Generar Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addReservation() {
+    alert('Función de nueva reserva en desarrollo');
+}
+
+function viewCalendar() {
+    alert('Función de calendario en desarrollo');
+}
+
+function editRoom() {
+    alert('Función de edición en desarrollo');
+}
+
+function printReport() {
+    alert('Función de reporte en desarrollo');
+}
+</script>
+{% endblock %}

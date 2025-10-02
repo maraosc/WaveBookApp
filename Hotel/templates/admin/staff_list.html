@@ -1,0 +1,184 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Gestión de Personal - Admin WaveBook{% endblock %}
+{% block page_title %}Gestión de Personal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" 
+                 style="background: linear-gradient(135deg, var(--azul-pacifico), var(--turquesa-coral)); color: white;">
+                <h6 class="m-0 font-weight-bold" style="color: white;">
+                    <i class="fas fa-user-tie me-2"></i>Personal del Hotel
+                </h6>
+                <button class="btn btn-sm" onclick="addStaff()" 
+                        style="background-color: var(--oro-arena); border-color: var(--oro-arena); color: var(--azul-pacifico);">
+                    <i class="fas fa-plus me-2"></i>Agregar Personal
+                </button>
+            </div>
+            <div class="card-body">
+                {% if staff %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Rol</th>
+                                    <th>Usuario</th>
+                                    <th>Fecha Contratación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in staff %}
+                                <tr>
+                                    <td>{{ member.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white rounded-circle me-3" 
+                                                 style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                {{ member.nombre|first }}{{ member.apellido|first }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ member.nombre }} {{ member.apellido }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ member.email }}</td>
+                                    <td>{{ member.telefono|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if member.rol == 'Administrador' %}bg-danger
+                                            {% elif member.rol == 'Recepcionista' %}bg-primary
+                                            {% elif member.rol == 'Limpieza' %}bg-info
+                                            {% elif member.rol == 'Mantenimiento' %}bg-warning text-dark
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ member.rol }}
+                                        </span>
+                                    </td>
+                                    <td>{{ member.usuario }}</td>
+                                    <td>{{ member.fecha_contratacion|date:"d/m/Y"|default:"-" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'admin_staff_detail' member.id %}" 
+                                               class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button class="btn btn-outline-info btn-sm" 
+                                                    title="Editar" onclick="editStaff({{ member.id }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            {% if member.rol != 'Administrador' %}
+                                            <button class="btn btn-outline-danger btn-sm" 
+                                                    title="Desactivar" onclick="deactivateStaff({{ member.id }})">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-user-tie fa-4x mb-3"></i>
+                        <h5>No hay personal registrado</h5>
+                        <p>El personal del hotel aparecerá aquí cuando sea agregado al sistema.</p>
+                        <button class="btn btn-primary" onclick="addStaff()">
+                            <i class="fas fa-plus me-2"></i>Agregar Primer Empleado
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics by Role -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-danger text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Administradores</h6>
+                        <h3 class="mb-0">
+                            {% for member in staff %}{% if member.rol == 'Administrador' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
+                        </h3>
+                    </div>
+                    <i class="fas fa-user-shield fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Recepcionistas</h6>
+                        <h3 class="mb-0">
+                            {% for member in staff %}{% if member.rol == 'Recepcionista' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
+                        </h3>
+                    </div>
+                    <i class="fas fa-concierge-bell fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Limpieza</h6>
+                        <h3 class="mb-0">
+                            {% for member in staff %}{% if member.rol == 'Limpieza' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
+                        </h3>
+                    </div>
+                    <i class="fas fa-broom fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Mantenimiento</h6>
+                        <h3 class="mb-0">
+                            {% for member in staff %}{% if member.rol == 'Mantenimiento' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
+                        </h3>
+                    </div>
+                    <i class="fas fa-tools fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addStaff() {
+    alert('Función de agregar personal en desarrollo');
+}
+
+function editStaff(staffId) {
+    alert('Función de editar personal en desarrollo para ID: ' + staffId);
+}
+
+function deactivateStaff(staffId) {
+    if (confirm('¿Está seguro de desactivar este empleado?')) {
+        alert('Función de desactivar personal en desarrollo para ID: ' + staffId);
+    }
+}
+</script>
+{% endblock %}

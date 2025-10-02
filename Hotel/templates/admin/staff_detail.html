@@ -1,0 +1,248 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}{{ staff_member.nombre }} {{ staff_member.apellido }} - Admin WaveBook{% endblock %}
+{% block page_title %}Detalle del Personal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user-tie me-2"></i>Información del Empleado
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <span class="h3 mb-0">{{ staff_member.nombre|first }}{{ staff_member.apellido|first }}</span>
+                    </div>
+                    <h4 class="mb-1">{{ staff_member.nombre }} {{ staff_member.apellido }}</h4>
+                    <p class="text-muted">ID: {{ staff_member.id }}</p>
+                    <span class="badge 
+                        {% if staff_member.rol == 'Administrador' %}bg-danger
+                        {% elif staff_member.rol == 'Recepcionista' %}bg-primary
+                        {% elif staff_member.rol == 'Limpieza' %}bg-info
+                        {% elif staff_member.rol == 'Mantenimiento' %}bg-warning text-dark
+                        {% else %}bg-secondary{% endif %} fs-6">
+                        {{ staff_member.rol }}
+                    </span>
+                </div>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ staff_member.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Teléfono:</strong></td>
+                        <td>{{ staff_member.telefono|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rol:</strong></td>
+                        <td>
+                            <span class="badge 
+                                {% if staff_member.rol == 'Administrador' %}bg-danger
+                                {% elif staff_member.rol == 'Recepcionista' %}bg-primary
+                                {% elif staff_member.rol == 'Limpieza' %}bg-info
+                                {% elif staff_member.rol == 'Mantenimiento' %}bg-warning text-dark
+                                {% else %}bg-secondary{% endif %}">
+                                {{ staff_member.rol }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Usuario:</strong></td>
+                        <td>{{ staff_member.usuario }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fecha Contratación:</strong></td>
+                        <td>{{ staff_member.fecha_contratacion|date:"d/m/Y"|default:"-" }}</td>
+                    </tr>
+                </table>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-outline-primary" onclick="editStaff()">
+                        <i class="fas fa-edit me-2"></i>Editar Información
+                    </button>
+                    <button class="btn btn-outline-info" onclick="changeRole()">
+                        <i class="fas fa-user-cog me-2"></i>Cambiar Rol
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="resetPassword()">
+                        <i class="fas fa-key me-2"></i>Restablecer Contraseña
+                    </button>
+                    {% if staff_member.rol != 'Administrador' %}
+                    <button class="btn btn-outline-danger" onclick="deactivateStaff()">
+                        <i class="fas fa-ban me-2"></i>Desactivar Empleado
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- Role Description -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle me-2"></i>Descripción del Rol
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if staff_member.rol == 'Administrador' %}
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-user-shield me-2"></i>Administrador</h6>
+                        <ul class="mb-0">
+                            <li>Acceso completo al sistema</li>
+                            <li>Gestión de usuarios y permisos</li>
+                            <li>Configuración del sistema</li>
+                            <li>Reportes y estadísticas</li>
+                            <li>Auditoría del sistema</li>
+                        </ul>
+                    </div>
+                {% elif staff_member.rol == 'Recepcionista' %}
+                    <div class="alert alert-primary">
+                        <h6><i class="fas fa-concierge-bell me-2"></i>Recepcionista</h6>
+                        <ul class="mb-0">
+                            <li>Gestión de reservas</li>
+                            <li>Check-in y check-out</li>
+                            <li>Atención al cliente</li>
+                            <li>Gestión de huéspedes</li>
+                            <li>Procesamiento de pagos</li>
+                        </ul>
+                    </div>
+                {% elif staff_member.rol == 'Limpieza' %}
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-broom me-2"></i>Personal de Limpieza</h6>
+                        <ul class="mb-0">
+                            <li>Limpieza de habitaciones</li>
+                            <li>Mantenimiento de áreas comunes</li>
+                            <li>Reporte de estado de habitaciones</li>
+                            <li>Control de inventario de limpieza</li>
+                        </ul>
+                    </div>
+                {% elif staff_member.rol == 'Mantenimiento' %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-tools me-2"></i>Personal de Mantenimiento</h6>
+                        <ul class="mb-0">
+                            <li>Reparaciones y mantenimiento</li>
+                            <li>Revisión de equipos</li>
+                            <li>Mantenimiento preventivo</li>
+                            <li>Reporte de problemas técnicos</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="alert alert-secondary">
+                        <h6><i class="fas fa-user me-2"></i>{{ staff_member.rol }}</h6>
+                        <p class="mb-0">Rol personalizado del sistema.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Activity Log (Placeholder) -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history me-2"></i>Actividad Reciente
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-history fa-3x mb-3"></i>
+                    <h6>Registro de Actividad</h6>
+                    <p>El registro de actividad del empleado aparecerá aquí cuando esté implementado.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics (Placeholder) -->
+<div class="row mt-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar me-2"></i>Métricas de Rendimiento
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Días Trabajados</h6>
+                                <h4 class="text-primary">-</h4>
+                                <small class="text-muted">Este mes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Tareas Completadas</h6>
+                                <h4 class="text-success">-</h4>
+                                <small class="text-muted">Este mes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Evaluación</h6>
+                                <h4 class="text-warning">-</h4>
+                                <small class="text-muted">Promedio</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Antigüedad</h6>
+                                <h4 class="text-info">
+                                    {% if staff_member.fecha_contratacion %}
+                                        {{ staff_member.fecha_contratacion|timesince|slice:":1" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">Años</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editStaff() {
+    alert('Función de edición en desarrollo');
+}
+
+function changeRole() {
+    alert('Función de cambio de rol en desarrollo');
+}
+
+function resetPassword() {
+    if (confirm('¿Está seguro de restablecer la contraseña de este empleado?')) {
+        alert('Función de restablecimiento de contraseña en desarrollo');
+    }
+}
+
+function deactivateStaff() {
+    if (confirm('¿Está seguro de desactivar este empleado?')) {
+        alert('Función de desactivación en desarrollo');
+    }
+}
+</script>
+{% endblock %}

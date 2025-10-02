@@ -1,0 +1,184 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Gestión de Habitaciones - Admin WaveBook{% endblock %}
+{% block page_title %}Gestión de Habitaciones{% endblock %}
+
+{% block content %}
+<!-- Filter and Search -->
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Filtrar por Estado</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">Todos los estados</option>
+                            <option value="Disponible" {% if status_filter == 'Disponible' %}selected{% endif %}>Disponible</option>
+                            <option value="Ocupada" {% if status_filter == 'Ocupada' %}selected{% endif %}>Ocupada</option>
+                            <option value="Mantenimiento" {% if status_filter == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                            <option value="Fuera de servicio" {% if status_filter == 'Fuera de servicio' %}selected{% endif %}>Fuera de servicio</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn me-2" 
+                                style="background-color: var(--turquesa-coral); border-color: var(--turquesa-coral); color: white;">
+                            <i class="fas fa-filter me-2"></i>Filtrar
+                        </button>
+                        <a href="{% url 'admin_rooms_list' %}" class="btn" 
+                           style="background-color: var(--gris-perla); border-color: var(--gris-perla); color: var(--azul-pacifico);">
+                            <i class="fas fa-times me-2"></i>Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rooms Grid -->
+<div class="row">
+    {% for room in rooms %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-bed me-2"></i>Habitación {{ room.numero }}
+                </h6>
+                <span class="badge 
+                    {% if room.estado == 'Disponible' %}bg-success
+                    {% elif room.estado == 'Ocupada' %}bg-danger
+                    {% elif room.estado == 'Mantenimiento' %}bg-warning
+                    {% else %}bg-secondary{% endif %}">
+                    {{ room.estado }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Piso</small>
+                        <div class="font-weight-bold">{{ room.piso }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Categoría</small>
+                        <div class="font-weight-bold">{{ room.categoria }}</div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Precio por noche</small>
+                    <div class="h5" style="color: var(--oro-arena);">${{ room.precio_diario|floatformat:0 }}</div>
+                </div>
+
+                {% if room.descripcion %}
+                <div class="mb-3">
+                    <small class="text-muted">Descripción</small>
+                    <p class="small">{{ room.descripcion|truncatewords:15 }}</p>
+                </div>
+                {% endif %}
+
+                <div class="d-grid gap-2">
+                    <a href="{% url 'admin_room_detail' room.id %}" class="btn btn-sm" 
+                       style="background-color: var(--turquesa-coral); border-color: var(--turquesa-coral); color: white;">
+                        <i class="fas fa-eye me-2"></i>Ver Detalles
+                    </a>
+                    
+                    <!-- Quick Status Change -->
+                    <div class="btn-group" role="group">
+                        {% if room.estado != 'Disponible' %}
+                        <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="Disponible">
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-check me-1"></i>Disponible
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if room.estado != 'Mantenimiento' %}
+                        <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="Mantenimiento">
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-tools me-1"></i>Mantenimiento
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-bed fa-4x text-muted mb-3"></i>
+                <h5>No hay habitaciones</h5>
+                {% if status_filter %}
+                    <p>No se encontraron habitaciones con el estado "{{ status_filter }}"</p>
+                    <a href="{% url 'admin_rooms_list' %}" class="btn btn-primary">Ver todas las habitaciones</a>
+                {% else %}
+                    <p>No hay habitaciones registradas en el sistema</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mt-4">
+    <div class="col-lg-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar me-2"></i>Resumen de Habitaciones
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <i class="fas fa-bed fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-0">{{ rooms.count }}</h4>
+                            <small class="text-muted">Total Habitaciones</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h4 class="mb-0">
+                                {% for room in rooms %}
+                                    {% if room.estado == 'Disponible' %}{{ forloop.counter0|add:1 }}{% endif %}
+                                {% endfor %}
+                            </h4>
+                            <small class="text-muted">Disponibles</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                            <h4 class="mb-0">
+                                {% for room in rooms %}
+                                    {% if room.estado == 'Ocupada' %}{{ forloop.counter0|add:1 }}{% endif %}
+                                {% endfor %}
+                            </h4>
+                            <small class="text-muted">Ocupadas</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-tools fa-2x text-warning mb-2"></i>
+                        <h4 class="mb-0">
+                            {% for room in rooms %}
+                                {% if room.estado == 'Mantenimiento' %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% endfor %}
+                        </h4>
+                        <small class="text-muted">En Mantenimiento</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

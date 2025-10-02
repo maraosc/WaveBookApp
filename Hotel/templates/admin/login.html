@@ -1,0 +1,168 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Login Admin - WaveBook{% endblock %}
+
+{% block login_content %}
+<style>
+    :root {
+        --azul-pacifico: #0E305D;
+        --turquesa-coral: #2AB7CA;
+        --arena-suave: #F5E3C3;
+        --oro-arena: #E6A500;
+        --gris-perla: #E0E0E0;
+        --blanco-puro: #FFFFFF;
+    }
+    
+    .login-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(14, 48, 93, 0.2);
+        border-left: 5px solid var(--turquesa-coral);
+    }
+    
+    .form-control {
+        border: 2px solid var(--gris-perla);
+        border-radius: 15px;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--turquesa-coral);
+        box-shadow: 0 0 0 0.2rem rgba(42, 183, 202, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--turquesa-coral) 0%, #229bb8 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--oro-arena) 0%, #cc9400 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(230, 165, 0, 0.3);
+    }
+    
+    .text-muted {
+        color: var(--azul-pacifico) !important;
+    }
+    
+    .alert {
+        border-radius: 15px;
+        border: none;
+        padding: 15px 20px;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(200, 35, 51, 0.1) 100%);
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+</style>
+<div class="container-fluid vh-100">
+    <div class="row vh-100">
+        <div class="col-md-6 d-flex align-items-center justify-content-center" 
+             style="background: linear-gradient(135deg, var(--azul-pacifico) 0%, #093050 100%);">
+            <div class="text-center text-white">
+                <i class="fas fa-hotel fa-5x mb-4" style="color: var(--oro-arena);"></i>
+                <h1 class="mb-3" style="color: var(--blanco-puro);">WaveBook Admin</h1>
+                <p class="lead" style="color: var(--turquesa-coral);">Sistema de Gestión Hotelera</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <div class="card login-card shadow-lg" style="width: 450px;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h3 class="mb-3">Acceso Administrativo</h3>
+                        <p class="text-muted">Ingresa tus credenciales para continuar</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'admin_login' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="usuario" class="form-label">
+                                <i class="fas fa-user me-2"></i>Usuario
+                            </label>
+                            <input type="text" class="form-control" id="usuario" name="usuario" 
+                                   placeholder="Ingresa tu usuario" required value="admin">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Contraseña
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Ingresa tu contraseña" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </button>
+                        
+                        <!-- Debug info -->
+                        <div class="text-center mt-2">
+                            <small class="text-muted">Tip: Usuario: admin, Contraseña: admin123</small>
+                        </div>
+                    </form>
+
+                    <div class="text-center">
+                        <a href="{% url 'home' %}" class="text-muted text-decoration-none">
+                            <i class="fas fa-arrow-left me-1"></i>Volver al sitio web
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Debug form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form is being submitted...');
+            console.log('Usuario:', document.getElementById('usuario').value);
+            console.log('Password length:', document.getElementById('password').value.length);
+            
+            // Change button text to show it's processing
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            submitBtn.disabled = true;
+        });
+    }
+    
+    // Auto-fill admin credentials for testing
+    const usuarioField = document.getElementById('usuario');
+    const passwordField = document.getElementById('password');
+    
+    if (usuarioField && !usuarioField.value) {
+        usuarioField.value = 'admin';
+    }
+});
+</script>
+{% endblock %}
