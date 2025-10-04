@@ -21,7 +21,9 @@ urlpatterns = [
     
     # Room Management
     path("hotel-admin/rooms/", views.admin_rooms_list, name="admin_rooms_list"),
+    path("hotel-admin/rooms/create/", views.admin_room_create, name="admin_room_create"),
     path("hotel-admin/rooms/<int:room_id>/", views.admin_room_detail, name="admin_room_detail"),
+    path("hotel-admin/rooms/<int:room_id>/edit/", views.admin_room_edit, name="admin_room_edit"),
     
     # Reservation Management
     path("hotel-admin/reservations/", views.admin_reservations_list, name="admin_reservations_list"),

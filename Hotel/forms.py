@@ -1,9 +1,5 @@
 from django import forms
-from .models import Huesped
-
-
-from django import forms
-from .models import Huesped
+from .models import Huesped, Habitacion
 
 
 class HuespedForm(forms.ModelForm):
@@ -84,3 +80,65 @@ class LoginForm(forms.Form):
             "placeholder": "********"
         })
     )
+
+
+class HabitacionForm(forms.ModelForm):
+    class Meta:
+        model = Habitacion
+        fields = [
+            'numero', 'piso', 'categoria', 'estado', 
+            'precio_diario', 'capacidad', 'descripcion', 
+            'equipamiento', 'imagen_principal'
+        ]
+        widgets = {
+            'numero': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: 101'
+            }),
+            'piso': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1,
+                'max': 10
+            }),
+            'categoria': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'estado': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'precio_diario': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '1000',
+                'min': '0'
+            }),
+            'capacidad': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1,
+                'max': 6
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Descripción detallada de la habitación...'
+            }),
+            'equipamiento': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'TV, WiFi, Aire acondicionado, Minibar, etc.'
+            }),
+            'imagen_principal': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
+        }
+        labels = {
+            'numero': 'Número de Habitación',
+            'piso': 'Piso',
+            'categoria': 'Categoría',
+            'estado': 'Estado',
+            'precio_diario': 'Precio por Noche ($)',
+            'capacidad': 'Capacidad (personas)',
+            'descripcion': 'Descripción',
+            'equipamiento': 'Equipamiento',
+            'imagen_principal': 'Imagen Principal'
+        }

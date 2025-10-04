@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 from Hotel.models import PersonalHotel, Habitacion
-import random
 
 
 class Command(BaseCommand):
@@ -81,24 +80,43 @@ class Command(BaseCommand):
                     )
                 )
 
-        # Create sample rooms
-        room_categories = ['Estándar', 'Superior', 'Deluxe', 'Suite']
-        base_prices = {'Estándar': 50000, 'Superior': 75000, 'Deluxe': 100000, 'Suite': 150000}
+        # Create all 38 rooms according to hotel structure
+        # Eliminar habitaciones existentes para recrearlas con la estructura correcta
+        Habitacion.objects.all().delete()
         
         created_rooms = 0
-        for floor in range(1, 5):  # 4 floors
-            for room_num in range(1, 11):  # 10 rooms per floor
-                room_number = f"{floor}{room_num:02d}"
-                category = random.choice(room_categories)
+        
+        # Pisos 1-5: 6 habitaciones cada uno - Categoría Turista (30 habitaciones)
+        for piso in range(1, 6):  # Pisos 1, 2, 3, 4, 5
+            for habitacion in range(1, 7):  # Habitaciones 1, 2, 3, 4, 5, 6
+                numero = f"{piso}{habitacion:02d}"  # Formato: 101, 102, 103, etc.
                 
                 room, created = Habitacion.objects.get_or_create(
-                    numero=room_number,
+                    numero=numero,
                     defaults={
-                        'piso': floor,
-                        'categoria': category,
+                        'piso': piso,
+                        'categoria': 'Turista',
                         'estado': 'Disponible',
-                        'precio_diario': base_prices[category] + random.randint(-5000, 10000),
-                        'descripcion': f'Habitación {category.lower()} en el piso {floor} con vista panorámica.'
+                        'precio_diario': 85000,
+                        'descripcion': f'Habitación turista en piso {piso} con comodidades estándar, baño privado, TV y WiFi.'
+                    }
+                )
+                if created:
+                    created_rooms += 1
+        
+        # Pisos 6-7: 4 habitaciones cada uno - Categoría Premium (8 habitaciones)
+        for piso in range(6, 8):  # Pisos 6, 7
+            for habitacion in range(1, 5):  # Habitaciones 1, 2, 3, 4
+                numero = f"{piso}{habitacion:02d}"  # Formato: 601, 602, 603, etc.
+                
+                room, created = Habitacion.objects.get_or_create(
+                    numero=numero,
+                    defaults={
+                        'piso': piso,
+                        'categoria': 'Premium',
+                        'estado': 'Disponible',
+                        'precio_diario': 180000,
+                        'descripcion': f'Suite Premium en piso {piso} con vista panorámica, jacuzzi, minibar, servicio a la habitación 24/7 y servicios exclusivos.'
                     }
                 )
                 if created:
@@ -107,7 +125,11 @@ class Command(BaseCommand):
         if created_rooms > 0:
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'{created_rooms} rooms created successfully'
+                    f'{created_rooms} habitaciones creadas exitosamente\n'
+                    f'Estructura del hotel:\n'
+                    f'  - Pisos 1-5: 30 habitaciones Turista ($85.000/noche)\n'
+                    f'  - Pisos 6-7: 8 habitaciones Premium ($180.000/noche)\n'
+                    f'  - Total: 38 habitaciones'
                 )
             )
 

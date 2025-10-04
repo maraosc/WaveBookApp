@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
-from .forms import HuespedForm, LoginForm
+from .forms import HuespedForm, LoginForm, HabitacionForm
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
@@ -253,6 +253,83 @@ def admin_room_detail(request, room_id):
     return render(request, "admin/room_detail.html", {
         'room': room,
         'current_reservations': current_reservations
+    })
+
+
+@admin_required
+def admin_room_edit(request, room_id):
+    room = get_object_or_404(Habitacion, id=room_id)
+    
+    if request.method == 'POST':
+        form = HabitacionForm(request.POST, request.FILES, instance=room)
+        if form.is_valid():
+            # Guardar valores anteriores para auditoría
+            old_values = {
+                'numero': room.numero,
+                'piso': room.piso,
+                'categoria': room.categoria,
+                'estado': room.estado,
+                'precio_diario': room.precio_diario,
+            }
+            
+            updated_room = form.save()
+            
+            # Log the change
+            ReporteAuditoria.objects.create(
+                tabla_afectada='Habitacion',
+                id_registro=str(room.id),
+                operacion='UPDATE',
+                usuario_responsable=request.session.get('admin_nombre', 'Admin'),
+                old_values=json.dumps(old_values, default=str),
+                new_values=json.dumps({
+                    'numero': updated_room.numero,
+                    'piso': updated_room.piso,
+                    'categoria': updated_room.categoria,
+                    'estado': updated_room.estado,
+                    'precio_diario': str(updated_room.precio_diario),
+                }, default=str)
+            )
+            
+            messages.success(request, f"Habitación {updated_room.numero} actualizada exitosamente")
+            return redirect('admin_room_detail', room_id=room.id)
+    else:
+        form = HabitacionForm(instance=room)
+    
+    return render(request, "admin/room_edit.html", {
+        'form': form,
+        'room': room
+    })
+
+
+@admin_required
+def admin_room_create(request):
+    if request.method == 'POST':
+        form = HabitacionForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_room = form.save()
+            
+            # Log the creation
+            ReporteAuditoria.objects.create(
+                tabla_afectada='Habitacion',
+                id_registro=str(new_room.id),
+                operacion='CREATE',
+                usuario_responsable=request.session.get('admin_nombre', 'Admin'),
+                new_values=json.dumps({
+                    'numero': new_room.numero,
+                    'piso': new_room.piso,
+                    'categoria': new_room.categoria,
+                    'estado': new_room.estado,
+                    'precio_diario': str(new_room.precio_diario),
+                }, default=str)
+            )
+            
+            messages.success(request, f"Habitación {new_room.numero} creada exitosamente")
+            return redirect('admin_room_detail', room_id=new_room.id)
+    else:
+        form = HabitacionForm()
+    
+    return render(request, "admin/room_create.html", {
+        'form': form
     })
 
 

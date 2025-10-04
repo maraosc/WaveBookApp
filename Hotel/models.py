@@ -52,12 +52,27 @@ class PersonalHotel(models.Model):
 
 
 class Habitacion(models.Model):
+    ESTADO_CHOICES = [
+        ('Disponible', 'Disponible'),
+        ('Ocupada', 'Ocupada'),
+        ('Mantenimiento', 'Mantenimiento'),
+        ('Reservada', 'Reservada'),
+    ]
+    
+    CATEGORIA_CHOICES = [
+        ('Turista', 'Turista'),
+        ('Premium', 'Premium'),
+    ]
+    
     numero = models.CharField(max_length=10, unique=True)
     piso = models.IntegerField()
-    categoria = models.CharField(max_length=50)
-    estado = models.CharField(max_length=30, default='Disponible')
+    categoria = models.CharField(max_length=50, choices=CATEGORIA_CHOICES)
+    estado = models.CharField(max_length=30, choices=ESTADO_CHOICES, default='Disponible')
     precio_diario = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField(blank=True, null=True)
+    imagen_principal = models.ImageField(upload_to='habitaciones/', blank=True, null=True)
+    capacidad = models.IntegerField(default=2)
+    equipamiento = models.TextField(blank=True, null=True, help_text="Lista de equipamiento separado por comas")
 
     def __str__(self):
         return f"Habitación {self.numero} - {self.categoria}"
