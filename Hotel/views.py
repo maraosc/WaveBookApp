@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
-from .forms import HuespedForm, LoginForm, HabitacionForm
+from .forms import HuespedForm, LoginForm, HabitacionForm, ReservaForm
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
@@ -13,6 +13,7 @@ from .models import (
 )
 from django.contrib.auth.decorators import login_required
 import json
+import uuid
 
 
 def home(request):
@@ -449,6 +450,85 @@ def admin_reservation_detail(request, reservation_id):
         'reservation': reservation,
         'rooms': rooms,
         'payments': payments
+    })
+
+
+@staff_required(['Administrador', 'Recepcionista'])
+def admin_reservation_create(request):
+    if request.method == 'POST':
+        form = ReservaForm(request.POST)
+        if form.is_valid():
+            try:
+                # Obtener o crear huésped
+                huesped_id = form.cleaned_data.get('huesped_existente')
+                if huesped_id:
+                    huesped = get_object_or_404(Huesped, id=huesped_id)
+                else:
+                    # Crear nuevo huésped
+                    huesped, created = Huesped.objects.get_or_create(
+                        email=form.cleaned_data['email'],
+                        defaults={
+                            'nombre': form.cleaned_data['nombre'],
+                            'apellido': form.cleaned_data['apellido'],
+                            'telefono': form.cleaned_data.get('telefono', ''),
+                            'documento_tipo': form.cleaned_data['documento_tipo'],
+                            'documento_numero': form.cleaned_data['documento_numero'],
+                            'password': make_password('temporal123')  # Contraseña temporal
+                        }
+                    )
+                
+                # Generar código de reserva único
+                codigo_reserva = f"RES-{uuid.uuid4().hex[:8].upper()}"
+                
+                # Calcular total
+                habitaciones = form.cleaned_data['habitaciones']
+                fecha_inicio = form.cleaned_data['fecha_inicio']
+                fecha_fin = form.cleaned_data['fecha_fin']
+                noches = (fecha_fin - fecha_inicio).days
+                
+                total = sum(hab.precio_diario * noches for hab in habitaciones)
+                
+                # Crear reserva
+                reserva = Reserva.objects.create(
+                    codigo_reserva=codigo_reserva,
+                    huesped=huesped,
+                    fecha_inicio=fecha_inicio,
+                    fecha_fin=fecha_fin,
+                    estado='Pendiente',
+                    total=total
+                )
+                
+                # Asociar habitaciones a la reserva
+                from .models import ReservaHabitacion
+                for habitacion in habitaciones:
+                    ReservaHabitacion.objects.create(
+                        reserva=reserva,
+                        habitacion=habitacion,
+                        precio_por_noche=habitacion.precio_diario
+                    )
+                    # Marcar habitación como reservada
+                    habitacion.estado = 'Reservada'
+                    habitacion.save()
+                
+                # Registrar en auditoría
+                ReporteAuditoria.objects.create(
+                    tabla_afectada='Reserva',
+                    id_registro=str(reserva.id),
+                    operacion='CREATE',
+                    usuario_responsable=request.session.get('admin_nombre', 'Admin'),
+                    new_values=f"Nueva reserva {codigo_reserva} para {huesped.nombre} {huesped.apellido}"
+                )
+                
+                messages.success(request, f"Reserva {codigo_reserva} creada exitosamente")
+                return redirect('admin_reservation_detail', reservation_id=reserva.id)
+                
+            except Exception as e:
+                messages.error(request, f"Error al crear la reserva: {str(e)}")
+    else:
+        form = ReservaForm()
+    
+    return render(request, "admin/reservation_create.html", {
+        'form': form
     })
 
 

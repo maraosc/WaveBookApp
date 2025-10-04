@@ -1,5 +1,5 @@
 from django import forms
-from .models import Huesped, Habitacion
+from .models import Huesped, Habitacion, Reserva
 
 
 class HuespedForm(forms.ModelForm):
@@ -142,3 +142,120 @@ class HabitacionForm(forms.ModelForm):
             'equipamiento': 'Equipamiento',
             'imagen_principal': 'Imagen Principal'
         }
+
+
+class ReservaForm(forms.Form):
+    # Información del huésped
+    huesped_existente = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    
+    # Campos para huésped nuevo o búsqueda
+    nombre = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre del huésped'
+        })
+    )
+    apellido = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Apellido del huésped'
+        })
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com'
+        })
+    )
+    telefono = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+56 9 1234 5678'
+        })
+    )
+    documento_tipo = forms.ChoiceField(
+        choices=[('', 'Seleccionar tipo')] + Huesped.TIPO_DOCUMENTO_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    documento_numero = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Número de documento'
+        })
+    )
+    
+    # Fechas de la reserva
+    fecha_inicio = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date',
+            'min': '',  # Se establecerá dinámicamente
+        })
+    )
+    fecha_fin = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date',
+            'min': '',  # Se establecerá dinámicamente
+        })
+    )
+    
+    # Habitaciones
+    habitaciones = forms.ModelMultipleChoiceField(
+        queryset=Habitacion.objects.filter(estado='Disponible'),
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input'
+        }),
+        required=True
+    )
+    
+    # Información adicional
+    observaciones = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Observaciones adicionales (opcional)'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Establecer fecha mínima como hoy
+        from datetime import date
+        today = date.today().isoformat()
+        self.fields['fecha_inicio'].widget.attrs['min'] = today
+        self.fields['fecha_fin'].widget.attrs['min'] = today
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+        huesped_existente = cleaned_data.get('huesped_existente')
+        
+        # Validar fechas
+        if fecha_inicio and fecha_fin:
+            if fecha_fin <= fecha_inicio:
+                raise forms.ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
+        
+        # Validar que se proporcione información del huésped
+        if not huesped_existente:
+            required_fields = ['nombre', 'apellido', 'email', 'documento_tipo', 'documento_numero']
+            for field in required_fields:
+                if not cleaned_data.get(field):
+                    raise forms.ValidationError(f"El campo {field} es obligatorio para nuevos huéspedes.")
+        
+        return cleaned_data

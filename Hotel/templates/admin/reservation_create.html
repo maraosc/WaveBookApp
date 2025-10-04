@@ -1,0 +1,438 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Crear Nueva Reserva - WaveBook Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Crear Nueva Reserva</h3>
+                    <a href="{% url 'admin_reservations_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Reservas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="reservaForm">
+                        {% csrf_token %}
+                        
+                        <!-- Sección de Huésped -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Información del Huésped</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Búsqueda de huésped existente -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.huesped_existente.id_for_label }}" class="form-label">
+                                            Buscar Huésped Existente
+                                        </label>
+                                        {{ form.huesped_existente }}
+                                        <small class="form-text text-muted">
+                                            Selecciona un huésped existente o deja vacío para crear uno nuevo
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-outline-primary mt-4" id="buscarHuesped">
+                                            <i class="fas fa-search"></i> Buscar por Email
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <!-- Datos del nuevo huésped -->
+                                <div id="nuevoHuespedSection">
+                                    <h6 class="text-muted mb-3">Datos del Nuevo Huésped (solo si no seleccionas uno existente)</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre</label>
+                                                {{ form.nombre }}
+                                                {% if form.nombre.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in form.nombre.errors %}
+                                                            <small>{{ error }}</small>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.apellido.id_for_label }}" class="form-label">Apellido</label>
+                                                {{ form.apellido }}
+                                                {% if form.apellido.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in form.apellido.errors %}
+                                                            <small>{{ error }}</small>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                                {{ form.email }}
+                                                {% if form.email.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in form.email.errors %}
+                                                            <small>{{ error }}</small>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono</label>
+                                                {{ form.telefono }}
+                                                {% if form.telefono.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in form.telefono.errors %}
+                                                            <small>{{ error }}</small>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.documento_tipo.id_for_label }}" class="form-label">Tipo de Documento</label>
+                                                {{ form.documento_tipo }}
+                                                {% if form.documento_tipo.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in form.documento_tipo.errors %}
+                                                            <small>{{ error }}</small>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.documento_numero.id_for_label }}" class="form-label">Número de Documento</label>
+                                                {{ form.documento_numero }}
+                                                {% if form.documento_numero.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in form.documento_numero.errors %}
+                                                            <small>{{ error }}</small>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Fechas -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Fechas de la Reserva</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">Fecha de Inicio</label>
+                                            {{ form.fecha_inicio }}
+                                            {% if form.fecha_inicio.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in form.fecha_inicio.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.fecha_fin.id_for_label }}" class="form-label">Fecha de Fin</label>
+                                            {{ form.fecha_fin }}
+                                            {% if form.fecha_fin.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in form.fecha_fin.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-info" id="nochesInfo" style="display: none;">
+                                            <strong>Duración:</strong> <span id="cantidadNoches">0</span> noche(s)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Habitaciones -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Selección de Habitaciones</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Habitaciones Disponibles</label>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="actualizarHabitaciones">
+                                        <i class="fas fa-sync"></i> Actualizar según fechas
+                                    </button>
+                                </div>
+                                
+                                <div class="row" id="habitacionesContainer">
+                                    {% for choice in form.habitaciones.field.queryset %}
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card habitacion-card" data-habitacion-id="{{ choice.id }}" data-precio="{{ choice.precio_diario }}">
+                                                <div class="card-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input habitacion-checkbox" 
+                                                               type="checkbox" 
+                                                               name="habitaciones" 
+                                                               value="{{ choice.id }}" 
+                                                               id="habitacion_{{ choice.id }}">
+                                                        <label class="form-check-label" for="habitacion_{{ choice.id }}">
+                                                            <strong>{{ choice.numero }}</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <small class="text-muted">{{ choice.tipo.nombre }}</small><br>
+                                                        <span class="badge bg-primary">${{ choice.precio_diario|floatformat:0 }}/noche</span>
+                                                        <span class="badge bg-success">{{ choice.get_estado_display }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <div class="col-12">
+                                            <div class="alert alert-warning">
+                                                No hay habitaciones disponibles. Selecciona primero las fechas de la reserva.
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                {% if form.habitaciones.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.habitaciones.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Resumen de la Reserva -->
+                        <div class="card mb-4" id="resumenReserva" style="display: none;">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Resumen de la Reserva</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div id="habitacionesSeleccionadas"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-end">
+                                            <div class="fs-5">
+                                                <strong>Total: $<span id="totalReserva">0</span></strong>
+                                            </div>
+                                            <small class="text-muted">
+                                                <span id="resumenNoches">0</span> noche(s)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_reservations_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Reserva
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.habitacion-card {
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.habitacion-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.25);
+}
+
+.habitacion-card.selected {
+    border-color: #28a745;
+    background-color: #f8fff9;
+}
+
+.form-control, .form-select {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaInicio = document.getElementById('id_fecha_inicio');
+    const fechaFin = document.getElementById('id_fecha_fin');
+    const nochesInfo = document.getElementById('nochesInfo');
+    const cantidadNoches = document.getElementById('cantidadNoches');
+    const resumenNoches = document.getElementById('resumenNoches');
+    const habitacionCheckboxes = document.querySelectorAll('.habitacion-checkbox');
+    const resumenReserva = document.getElementById('resumenReserva');
+    const habitacionesSeleccionadas = document.getElementById('habitacionesSeleccionadas');
+    const totalReserva = document.getElementById('totalReserva');
+    const huespedExistente = document.getElementById('id_huesped_existente');
+    const nuevoHuespedSection = document.getElementById('nuevoHuespedSection');
+
+    // Configurar fechas mínimas
+    const today = new Date().toISOString().split('T')[0];
+    fechaInicio.min = today;
+    fechaFin.min = today;
+
+    // Función para calcular noches
+    function calcularNoches() {
+        if (fechaInicio.value && fechaFin.value) {
+            const inicio = new Date(fechaInicio.value);
+            const fin = new Date(fechaFin.value);
+            const diffTime = Math.abs(fin - inicio);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 0) {
+                cantidadNoches.textContent = diffDays;
+                resumenNoches.textContent = diffDays;
+                nochesInfo.style.display = 'block';
+                return diffDays;
+            }
+        }
+        nochesInfo.style.display = 'none';
+        return 0;
+    }
+
+    // Función para calcular total
+    function calcularTotal() {
+        const noches = calcularNoches();
+        let total = 0;
+        let habitacionesText = '';
+        let count = 0;
+
+        habitacionCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const card = checkbox.closest('.habitacion-card');
+                const precio = parseFloat(card.dataset.precio);
+                const numeroHab = checkbox.closest('.card-body').querySelector('label strong').textContent;
+                
+                total += precio * noches;
+                count++;
+                
+                if (habitacionesText) habitacionesText += '<br>';
+                habitacionesText += `<strong>${numeroHab}</strong>: $${precio.toLocaleString()}/noche × ${noches} = $${(precio * noches).toLocaleString()}`;
+            }
+        });
+
+        if (count > 0) {
+            habitacionesSeleccionadas.innerHTML = habitacionesText;
+            totalReserva.textContent = total.toLocaleString();
+            resumenReserva.style.display = 'block';
+        } else {
+            resumenReserva.style.display = 'none';
+        }
+    }
+
+    // Eventos de fecha
+    fechaInicio.addEventListener('change', function() {
+        fechaFin.min = this.value;
+        calcularTotal();
+    });
+
+    fechaFin.addEventListener('change', calcularTotal);
+
+    // Eventos de habitaciones
+    habitacionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const card = this.closest('.habitacion-card');
+            if (this.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+            calcularTotal();
+        });
+    });
+
+    // Control de huésped existente vs nuevo
+    huespedExistente.addEventListener('change', function() {
+        if (this.value) {
+            nuevoHuespedSection.style.opacity = '0.5';
+            nuevoHuespedSection.querySelectorAll('input, select').forEach(input => {
+                input.disabled = true;
+            });
+        } else {
+            nuevoHuespedSection.style.opacity = '1';
+            nuevoHuespedSection.querySelectorAll('input, select').forEach(input => {
+                input.disabled = false;
+            });
+        }
+    });
+
+    // Búsqueda de huésped por email
+    document.getElementById('buscarHuesped').addEventListener('click', function() {
+        const email = prompt('Ingresa el email del huésped:');
+        if (email) {
+            // Aquí podrías implementar una búsqueda AJAX
+            // Por ahora, solo mostrar mensaje
+            alert('Función de búsqueda por implementar');
+        }
+    });
+
+    // Actualizar habitaciones según fechas
+    document.getElementById('actualizarHabitaciones').addEventListener('click', function() {
+        if (!fechaInicio.value || !fechaFin.value) {
+            alert('Por favor selecciona las fechas primero');
+            return;
+        }
+        // Aquí podrías implementar una actualización AJAX de habitaciones disponibles
+        alert('Función de actualización por implementar');
+    });
+});
+</script>
+{% endblock %}

@@ -51,9 +51,9 @@
                 <h6 class="m-0 font-weight-bold" style="color: white;">
                     <i class="fas fa-calendar-check me-2"></i>Lista de Reservas
                 </h6>
-                <button class="btn btn-success btn-sm" onclick="newReservation()">
+                <a href="{% url 'admin_reservation_create' %}" class="btn btn-success btn-sm">
                     <i class="fas fa-plus me-2"></i>Nueva Reserva
-                </button>
+                </a>
             </div>
             <div class="card-body">
                 {% if page_obj %}
@@ -189,9 +189,9 @@
                         <i class="fas fa-calendar-times fa-4x mb-3"></i>
                         <h5>No hay reservas</h5>
                         <p>Las reservas aparecerán aquí cuando los huéspedes realicen reservas.</p>
-                        <button class="btn btn-primary" onclick="newReservation()">
+                        <a href="{% url 'admin_reservation_create' %}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Crear Nueva Reserva
-                        </button>
+                        </a>
                     </div>
                 {% endif %}
             </div>
@@ -260,9 +260,7 @@
 
 {% block extra_js %}
 <script>
-function newReservation() {
-    alert('Función de nueva reserva en desarrollo');
-}
+// Función eliminada - ahora usamos enlace directo
 
 function confirmReservation(reservationId) {
     if (confirm('¿Confirmar esta reserva?')) {

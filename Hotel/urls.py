@@ -27,6 +27,7 @@ urlpatterns = [
     
     # Reservation Management
     path("hotel-admin/reservations/", views.admin_reservations_list, name="admin_reservations_list"),
+    path("hotel-admin/reservations/create/", views.admin_reservation_create, name="admin_reservation_create"),
     path("hotel-admin/reservations/<int:reservation_id>/", views.admin_reservation_detail, name="admin_reservation_detail"),
     
     # Staff Management
