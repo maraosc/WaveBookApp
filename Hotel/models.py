@@ -55,6 +55,7 @@ class Habitacion(models.Model):
     ESTADO_CHOICES = [
         ('Disponible', 'Disponible'),
         ('Ocupada', 'Ocupada'),
+        ('Limpieza', 'Limpieza'),
         ('Mantenimiento', 'Mantenimiento'),
         ('Reservada', 'Reservada'),
     ]

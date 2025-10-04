@@ -23,48 +23,64 @@
                     </div>
                     
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
-                               href="{% url 'admin_dashboard' %}">
-                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'guests' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_guests_list' %}">
-                                <i class="fas fa-users me-2"></i> Huéspedes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'rooms' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_rooms_list' %}">
-                                <i class="fas fa-bed me-2"></i> Habitaciones
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'reservations' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_reservations_list' %}">
-                                <i class="fas fa-calendar-check me-2"></i> Reservas
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'staff' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_staff_list' %}">
-                                <i class="fas fa-user-tie me-2"></i> Personal
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_reports' %}">
-                                <i class="fas fa-chart-bar me-2"></i> Reportes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'audit' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'admin_audit_log' %}">
-                                <i class="fas fa-history me-2"></i> Auditoría
-                            </a>
-                        </li>
+                        <!-- Menú para roles de Limpieza y Mantenimiento -->
+                        {% if request.session.admin_rol == 'Limpieza' or request.session.admin_rol == 'Mantenimiento' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'rooms' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_rooms_list' %}">
+                                    <i class="fas fa-bed me-2"></i> Habitaciones
+                                </a>
+                            </li>
+                        
+                        <!-- Menú completo para Administrador y Recepcionista -->
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                                   href="{% url 'admin_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'guests' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_guests_list' %}">
+                                    <i class="fas fa-users me-2"></i> Huéspedes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'rooms' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_rooms_list' %}">
+                                    <i class="fas fa-bed me-2"></i> Habitaciones
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'reservations' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_reservations_list' %}">
+                                    <i class="fas fa-calendar-check me-2"></i> Reservas
+                                </a>
+                            </li>
+                            
+                            <!-- Solo Administradores ven Personal, Reportes y Auditoría -->
+                            {% if request.session.admin_rol == 'Administrador' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'staff' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_staff_list' %}">
+                                    <i class="fas fa-user-tie me-2"></i> Personal
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_reports' %}">
+                                    <i class="fas fa-chart-bar me-2"></i> Reportes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'audit' in request.resolver_match.url_name %}active{% endif %}" 
+                                   href="{% url 'admin_audit_log' %}">
+                                    <i class="fas fa-history me-2"></i> Auditoría
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endif %}
                         <hr class="my-3">
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'home' %}" target="_blank">
@@ -87,6 +103,10 @@
                     <div class="container-fluid">
                         <h1 class="h3 mb-0">{% block page_title %}Panel de Administración{% endblock %}</h1>
                         <div class="d-flex align-items-center">
+                            <span class="text-muted me-3">
+                                <i class="fas fa-user me-1"></i>
+                                {{ request.session.admin_nombre }} ({{ request.session.admin_rol }})
+                            </span>
                             <span class="text-muted me-3">
                                 <i class="fas fa-clock me-1"></i>
                                 <span id="current-time"></span>

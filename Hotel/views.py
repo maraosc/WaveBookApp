@@ -78,55 +78,62 @@ def test_admin_view(request):
 
 
 # Admin session middleware
+def staff_required(allowed_roles=None):
+    """Decorador que permite acceso a usuarios con roles específicos"""
+    if allowed_roles is None:
+        allowed_roles = ['Administrador']
+    
+    def decorator(view_func):
+        def wrapper(request, *args, **kwargs):
+            if not request.session.get('admin_id'):
+                messages.error(request, "Acceso denegado. Inicia sesión primero.")
+                return redirect('admin_login')
+            
+            user_role = request.session.get('admin_rol')
+            if user_role not in allowed_roles:
+                messages.error(request, f"Acceso denegado. Tu rol ({user_role}) no tiene permisos para esta sección.")
+                return redirect('admin_dashboard')
+            
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+# Decorador para compatibilidad con código existente
 def admin_required(view_func):
-    def wrapper(request, *args, **kwargs):
-        if not request.session.get('admin_id'):
-            messages.error(request, "Acceso denegado. Inicia sesión como administrador.")
-            return redirect('admin_login')
-        return view_func(request, *args, **kwargs)
-    return wrapper
+    return staff_required(['Administrador'])(view_func)
 
 
 # Admin Authentication Views
 def admin_login_view(request):
-    print(f"DEBUG: admin_login_view called - Method: {request.method}")
-    print(f"DEBUG: Request path: {request.path}")
-    print(f"DEBUG: POST data: {dict(request.POST)}")
-    
     if request.method == "POST":
         usuario = request.POST.get('usuario')
         password = request.POST.get('password')
         
-        print(f"DEBUG: Login attempt - Usuario: '{usuario}', Password length: {len(password) if password else 0}")
-        
         if not usuario or not password:
-            print("DEBUG: Missing usuario or password")
             messages.error(request, "Por favor ingrese usuario y contraseña")
             return render(request, "admin/login.html")
         
         try:
-            admin = PersonalHotel.objects.get(usuario=usuario, rol='Administrador')
-            print(f"DEBUG: Found admin user: {admin.nombre}")
+            # Permitir login de todos los roles del personal del hotel
+            staff = PersonalHotel.objects.get(usuario=usuario)
             
-            if check_password(password, admin.contrasena_hash):
-                print("DEBUG: Password check successful")
-                request.session['admin_id'] = admin.id
-                request.session['admin_nombre'] = admin.nombre
-                request.session['admin_rol'] = admin.rol
-                messages.success(request, f"Bienvenido {admin.nombre}")
-                print("DEBUG: Redirecting to admin_dashboard")
-                return redirect('admin_dashboard')
+            if check_password(password, staff.contrasena_hash):
+                request.session['admin_id'] = staff.id
+                request.session['admin_nombre'] = staff.nombre
+                request.session['admin_rol'] = staff.rol
+                messages.success(request, f"Bienvenido {staff.nombre} ({staff.rol})")
+                
+                # Redirigir según el rol
+                if staff.rol in ['Limpieza', 'Mantenimiento']:
+                    return redirect('admin_rooms_list')
+                else:
+                    return redirect('admin_dashboard')
             else:
-                print("DEBUG: Password check failed")
                 messages.error(request, "Credenciales incorrectas")
         except PersonalHotel.DoesNotExist:
-            print(f"DEBUG: Admin user not found: {usuario}")
             messages.error(request, "Usuario no encontrado")
         except Exception as e:
-            print(f"DEBUG: Unexpected error: {e}")
             messages.error(request, "Error interno del sistema")
-    else:
-        print("DEBUG: GET request - showing login form")
     
     return render(request, "admin/login.html")
 
@@ -138,8 +145,13 @@ def admin_logout_view(request):
 
 
 # Admin Dashboard
-@admin_required
+@staff_required(['Administrador', 'Recepcionista'])
 def admin_dashboard(request):
+    # Redirigir roles operativos a habitaciones
+    user_role = request.session.get('admin_rol')
+    if user_role in ['Limpieza', 'Mantenimiento']:
+        return redirect('admin_rooms_list')
+        
     # Estadísticas generales
     total_huespedes = Huesped.objects.count()
     total_habitaciones = Habitacion.objects.count()
@@ -169,7 +181,7 @@ def admin_dashboard(request):
 
 
 # Guest Management Views
-@admin_required
+@staff_required(['Administrador', 'Recepcionista'])
 def admin_guests_list(request):
     search_query = request.GET.get('search', '')
     guests = Huesped.objects.all()
@@ -192,7 +204,7 @@ def admin_guests_list(request):
     })
 
 
-@admin_required
+@staff_required(['Administrador', 'Recepcionista'])
 def admin_guest_detail(request, guest_id):
     guest = get_object_or_404(Huesped, id=guest_id)
     reservas = guest.reservas.all().order_by('-fecha_creacion')
@@ -204,29 +216,56 @@ def admin_guest_detail(request, guest_id):
 
 
 # Room Management Views
-@admin_required
+@staff_required(['Administrador', 'Mantenimiento', 'Limpieza', 'Recepcionista'])
 def admin_rooms_list(request):
-    rooms = Habitacion.objects.all().order_by('numero')
+    user_role = request.session.get('admin_rol')
     
-    # Filter by status
-    status_filter = request.GET.get('status')
-    if status_filter:
-        rooms = rooms.filter(estado=status_filter)
+    # Filtrar habitaciones según el rol
+    if user_role == 'Limpieza':
+        # Personal de limpieza solo ve habitaciones en estado "Limpieza"
+        rooms = Habitacion.objects.filter(estado='Limpieza').order_by('numero')
+        role_filter = 'Limpieza'
+    elif user_role == 'Mantenimiento':
+        # Personal de mantenimiento solo ve habitaciones en estado "Mantenimiento"  
+        rooms = Habitacion.objects.filter(estado='Mantenimiento').order_by('numero')
+        role_filter = 'Mantenimiento'
+    else:
+        # Administrador y Recepcionista ven todas las habitaciones
+        rooms = Habitacion.objects.all().order_by('numero')
+        role_filter = None
+        
+        # Filter by status (solo para admin y recepcionista)
+        status_filter = request.GET.get('status')
+        if status_filter:
+            rooms = rooms.filter(estado=status_filter)
     
     return render(request, "admin/rooms_list.html", {
         'rooms': rooms,
-        'status_filter': status_filter
+        'status_filter': request.GET.get('status') if user_role in ['Administrador', 'Recepcionista'] else None,
+        'role_filter': role_filter,
+        'user_role': user_role
     })
 
 
-@admin_required
+@staff_required(['Administrador', 'Mantenimiento', 'Limpieza', 'Recepcionista'])
 def admin_room_detail(request, room_id):
     room = get_object_or_404(Habitacion, id=room_id)
     
     if request.method == 'POST':
-        # Update room status
+        # Update room status based on user role
         new_status = request.POST.get('status')
-        if new_status in ['Disponible', 'Ocupada', 'Mantenimiento', 'Fuera de servicio']:
+        user_role = request.session.get('admin_rol')
+        old_status = room.estado
+        
+        # Define allowed status changes per role
+        allowed_statuses = {
+            'Administrador': ['Disponible', 'Ocupada', 'Limpieza', 'Mantenimiento', 'Reservada'],
+            'Mantenimiento': ['Disponible'],  # Solo puede marcar como disponible cuando ve habitaciones en mantenimiento
+            'Limpieza': ['Disponible'],       # Solo puede marcar como disponible cuando ve habitaciones en limpieza
+            'Recepcionista': []  # Solo puede ver, no cambiar estados
+        }
+        
+        if user_role in allowed_statuses and new_status in allowed_statuses[user_role]:
             room.estado = new_status
             room.save()
             
@@ -236,12 +275,15 @@ def admin_room_detail(request, room_id):
                 id_registro=str(room.id),
                 operacion='UPDATE',
                 usuario_responsable=request.session.get('admin_nombre', 'Admin'),
-                old_values=f"Estado anterior: {room.estado}",
+                old_values=f"Estado anterior: {old_status}",
                 new_values=f"Estado nuevo: {new_status}"
             )
             
             messages.success(request, f"Estado de habitación actualizado a {new_status}")
-            return redirect('admin_room_detail', room_id=room.id)
+        else:
+            messages.error(request, f"No tienes permisos para cambiar el estado a '{new_status}' con tu rol de {user_role}")
+        
+        return redirect('admin_room_detail', room_id=room.id)
     
     # Get current reservations for this room
     current_reservations = ReservaHabitacion.objects.filter(
@@ -252,7 +294,8 @@ def admin_room_detail(request, room_id):
     
     return render(request, "admin/room_detail.html", {
         'room': room,
-        'current_reservations': current_reservations
+        'current_reservations': current_reservations,
+        'user_role': request.session.get('admin_rol', '')
     })
 
 
@@ -334,7 +377,7 @@ def admin_room_create(request):
 
 
 # Reservation Management Views
-@admin_required
+@staff_required(['Administrador', 'Recepcionista'])
 def admin_reservations_list(request):
     reservations = Reserva.objects.select_related('huesped').order_by('-fecha_creacion')
     
@@ -363,7 +406,7 @@ def admin_reservations_list(request):
     })
 
 
-@admin_required
+@staff_required(['Administrador', 'Recepcionista'])
 def admin_reservation_detail(request, reservation_id):
     reservation = get_object_or_404(Reserva, id=reservation_id)
     

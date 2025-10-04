@@ -9,36 +9,59 @@
     <div class="col-lg-12">
         <div class="card shadow">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-filter me-2"></i>Filtros
-                    </h6>
-                    <a href="{% url 'admin_room_create' %}" class="btn btn-success btn-sm">
-                        <i class="fas fa-plus me-1"></i>Nueva Habitación
-                    </a>
-                </div>
-                <form method="get" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="status" class="form-label">Filtrar por Estado</label>
-                        <select name="status" id="status" class="form-select">
-                            <option value="">Todos los estados</option>
-                            <option value="Disponible" {% if status_filter == 'Disponible' %}selected{% endif %}>Disponible</option>
-                            <option value="Ocupada" {% if status_filter == 'Ocupada' %}selected{% endif %}>Ocupada</option>
-                            <option value="Mantenimiento" {% if status_filter == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
-                            <option value="Fuera de servicio" {% if status_filter == 'Fuera de servicio' %}selected{% endif %}>Fuera de servicio</option>
-                        </select>
+                {% if role_filter %}
+                    <!-- Vista filtrada por rol -->
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-filter me-3 fa-lg"></i>
+                            <div>
+                                <strong>Vista especializada - {{ user_role }}:</strong><br>
+                                {% if role_filter == 'Limpieza' %}
+                                    <small>Mostrando solo habitaciones en <span class="badge bg-info">Limpieza</span>. 
+                                    Marca como <span class="badge bg-success">Disponible</span> cuando termines.</small>
+                                {% elif role_filter == 'Mantenimiento' %}
+                                    <small>Mostrando solo habitaciones en <span class="badge bg-warning">Mantenimiento</span>. 
+                                    Marca como <span class="badge bg-success">Disponible</span> cuando termines las reparaciones.</small>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn me-2" 
-                                style="background-color: var(--turquesa-coral); border-color: var(--turquesa-coral); color: white;">
-                            <i class="fas fa-filter me-2"></i>Filtrar
-                        </button>
-                        <a href="{% url 'admin_rooms_list' %}" class="btn" 
-                           style="background-color: var(--gris-perla); border-color: var(--gris-perla); color: var(--azul-pacifico);">
-                            <i class="fas fa-times me-2"></i>Limpiar
+                {% else %}
+                    <!-- Filtros completos para Admin/Recepcionista -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-filter me-2"></i>Filtros
+                        </h6>
+                        {% if user_role == 'Administrador' %}
+                        <a href="{% url 'admin_room_create' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Nueva Habitación
                         </a>
+                        {% endif %}
                     </div>
-                </form>
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Filtrar por Estado</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="Disponible" {% if status_filter == 'Disponible' %}selected{% endif %}>Disponible</option>
+                                <option value="Ocupada" {% if status_filter == 'Ocupada' %}selected{% endif %}>Ocupada</option>
+                                <option value="Limpieza" {% if status_filter == 'Limpieza' %}selected{% endif %}>Limpieza</option>
+                                <option value="Mantenimiento" {% if status_filter == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                                <option value="Reservada" {% if status_filter == 'Reservada' %}selected{% endif %}>Reservada</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn me-2" 
+                                    style="background-color: var(--turquesa-coral); border-color: var(--turquesa-coral); color: white;">
+                                <i class="fas fa-filter me-2"></i>Filtrar
+                            </button>
+                            <a href="{% url 'admin_rooms_list' %}" class="btn" 
+                               style="background-color: var(--gris-perla); border-color: var(--gris-perla); color: var(--azul-pacifico);">
+                                <i class="fas fa-times me-2"></i>Limpiar
+                            </a>
+                        </div>
+                    </form>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -56,6 +79,7 @@
                 <span class="badge 
                     {% if room.estado == 'Disponible' %}bg-success
                     {% elif room.estado == 'Ocupada' %}bg-danger
+                    {% elif room.estado == 'Limpieza' %}bg-info
                     {% elif room.estado == 'Mantenimiento' %}bg-warning
                     {% else %}bg-secondary{% endif %}">
                     {{ room.estado }}
@@ -91,30 +115,69 @@
                         <i class="fas fa-eye me-2"></i>Ver Detalles
                     </a>
                     
+                    {% if request.session.admin_rol == 'Administrador' %}
                     <a href="{% url 'admin_room_edit' room.id %}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-edit me-2"></i>Editar
                     </a>
+                    {% endif %}
                     
-                    <!-- Cambio Rápido de Estado -->
+                    <!-- Cambio Rápido de Estado según Rol -->
                     <div class="btn-group" role="group">
-                        {% if room.estado != 'Disponible' %}
-                        <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="status" value="Disponible">
-                            <button type="submit" class="btn btn-outline-success btn-sm">
-                                <i class="fas fa-check me-1"></i>Disponible
-                            </button>
-                        </form>
-                        {% endif %}
+                        <!-- Administrador: todos los cambios -->
+                        {% if request.session.admin_rol == 'Administrador' %}
+                            {% if room.estado != 'Disponible' %}
+                            <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Disponible">
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-check me-1"></i>Disponible
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if room.estado != 'Limpieza' %}
+                            <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Limpieza">
+                                <button type="submit" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-spray-can me-1"></i>Limpieza
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if room.estado != 'Mantenimiento' %}
+                            <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Mantenimiento">
+                                <button type="submit" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-tools me-1"></i>Mantenimiento
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                        <!-- Mantenimiento: Solo puede marcar como Disponible -->
+                        {% elif request.session.admin_rol == 'Mantenimiento' %}
+                            <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Disponible">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check me-1"></i>Reparación Terminada
+                                </button>
+                            </form>
+                            
+                        <!-- Limpieza: Solo puede marcar como Disponible -->
+                        {% elif request.session.admin_rol == 'Limpieza' %}
+                            <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="Disponible">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check me-1"></i>Limpieza Terminada
+                                </button>
+                            </form>
                         
-                        {% if room.estado != 'Mantenimiento' %}
-                        <form method="post" action="{% url 'admin_room_detail' room.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="status" value="Mantenimiento">
-                            <button type="submit" class="btn btn-outline-warning btn-sm">
-                                <i class="fas fa-tools me-1"></i>Mantenimiento
-                            </button>
-                        </form>
+                        <!-- Recepcionista: solo visualización -->
+                        {% elif request.session.admin_rol == 'Recepcionista' %}
+                            <small class="text-muted">Solo visualización</small>
                         {% endif %}
                     </div>
                 </div>

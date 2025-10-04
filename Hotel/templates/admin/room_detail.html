@@ -15,6 +15,7 @@
                 <span class="badge 
                     {% if room.estado == 'Disponible' %}bg-success
                     {% elif room.estado == 'Ocupada' %}bg-danger
+                    {% elif room.estado == 'Limpieza' %}bg-info
                     {% elif room.estado == 'Mantenimiento' %}bg-warning
                     {% else %}bg-secondary{% endif %} fs-6">
                     {{ room.estado }}
@@ -49,6 +50,7 @@
                             <span class="badge 
                                 {% if room.estado == 'Disponible' %}bg-success
                                 {% elif room.estado == 'Ocupada' %}bg-danger
+                                {% elif room.estado == 'Limpieza' %}bg-info
                                 {% elif room.estado == 'Mantenimiento' %}bg-warning
                                 {% else %}bg-secondary{% endif %}">
                                 {{ room.estado }}
@@ -74,41 +76,80 @@
                     <form method="post" class="d-grid gap-2">
                         {% csrf_token %}
                         <div class="btn-group" role="group">
-                            {% if room.estado != 'Disponible' %}
-                            <button type="submit" name="status" value="Disponible" 
-                                    class="btn btn-success btn-sm">
-                                <i class="fas fa-check me-1"></i>Disponible
-                            </button>
-                            {% endif %}
+                            <!-- Administrador puede cambiar a cualquier estado -->
+                            {% if request.session.admin_rol == 'Administrador' %}
+                                {% if room.estado != 'Disponible' %}
+                                <button type="submit" name="status" value="Disponible" 
+                                        class="btn btn-success btn-sm">
+                                    <i class="fas fa-check me-1"></i>Disponible
+                                </button>
+                                {% endif %}
+                                
+                                {% if room.estado != 'Ocupada' %}
+                                <button type="submit" name="status" value="Ocupada" 
+                                        class="btn btn-danger btn-sm">
+                                    <i class="fas fa-user me-1"></i>Ocupada
+                                </button>
+                                {% endif %}
+                                
+                                {% if room.estado != 'Limpieza' %}
+                                <button type="submit" name="status" value="Limpieza" 
+                                        class="btn btn-info btn-sm">
+                                    <i class="fas fa-spray-can me-1"></i>Limpieza
+                                </button>
+                                {% endif %}
+                                
+                                {% if room.estado != 'Mantenimiento' %}
+                                <button type="submit" name="status" value="Mantenimiento" 
+                                        class="btn btn-warning btn-sm">
+                                    <i class="fas fa-tools me-1"></i>Mantenimiento
+                                </button>
+                                {% endif %}
+                                
+                                {% if room.estado != 'Reservada' %}
+                                <button type="submit" name="status" value="Reservada" 
+                                        class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-calendar me-1"></i>Reservada
+                                </button>
+                                {% endif %}
                             
-                            {% if room.estado != 'Ocupada' %}
-                            <button type="submit" name="status" value="Ocupada" 
-                                    class="btn btn-danger btn-sm">
-                                <i class="fas fa-user me-1"></i>Ocupada
-                            </button>
-                            {% endif %}
+                            <!-- Mantenimiento solo puede marcar como Disponible -->
+                            {% elif request.session.admin_rol == 'Mantenimiento' %}
+                                <button type="submit" name="status" value="Disponible" 
+                                        class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-check me-2"></i>Marcar Reparación Terminada
+                                </button>
+                                <small class="text-muted mt-2 d-block">
+                                    Esta habitación pasará a estado "Disponible" y estará lista para huéspedes.
+                                </small>
                             
-                            {% if room.estado != 'Mantenimiento' %}
-                            <button type="submit" name="status" value="Mantenimiento" 
-                                    class="btn btn-warning btn-sm">
-                                <i class="fas fa-tools me-1"></i>Mantenimiento
-                            </button>
-                            {% endif %}
+                            <!-- Limpieza solo puede marcar como Disponible -->
+                            {% elif request.session.admin_rol == 'Limpieza' %}
+                                <button type="submit" name="status" value="Disponible" 
+                                        class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-check me-2"></i>Marcar Limpieza Terminada
+                                </button>
+                                <small class="text-muted mt-2 d-block">
+                                    Esta habitación pasará a estado "Disponible" y estará lista para huéspedes.
+                                </small>
                             
-                            {% if room.estado != 'Fuera de servicio' %}
-                            <button type="submit" name="status" value="Fuera de servicio" 
-                                    class="btn btn-secondary btn-sm">
-                                <i class="fas fa-ban me-1"></i>Fuera de Servicio
-                            </button>
+                            <!-- Recepcionista solo puede ver, no cambiar estados -->
+                            {% elif request.session.admin_rol == 'Recepcionista' %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Como recepcionista, puedes ver el estado de las habitaciones pero no modificarlo.
+                                </div>
                             {% endif %}
                         </div>
                     </form>
                 </div>
 
                 <div class="d-grid gap-2 mt-4">
+                    {% if request.session.admin_rol == 'Administrador' %}
                     <a href="{% url 'admin_room_edit' room.id %}" class="btn btn-primary">
                         <i class="fas fa-edit me-2"></i>Editar Habitación
                     </a>
+                    {% endif %}
                     <a href="{% url 'admin_rooms_list' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Volver a Lista
                     </a>
