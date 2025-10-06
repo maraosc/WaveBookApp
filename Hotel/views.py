@@ -532,6 +532,42 @@ def admin_reservation_create(request):
     })
 
 
+@staff_required(['Administrador', 'Recepcionista'])
+def buscar_huesped_ajax(request):
+    """Vista AJAX para buscar huésped por número de documento"""
+    if request.method == 'GET':
+        documento_numero = request.GET.get('documento', '').strip()
+        
+        if documento_numero:
+            try:
+                huesped = Huesped.objects.get(documento_numero=documento_numero)
+                return JsonResponse({
+                    'found': True,
+                    'huesped': {
+                        'id': huesped.id,
+                        'nombre': huesped.nombre,
+                        'apellido': huesped.apellido,
+                        'email': huesped.email,
+                        'telefono': huesped.telefono,
+                        'documento_tipo': huesped.documento_tipo,
+                        'documento_numero': huesped.documento_numero,
+                        'nombre_completo': f"{huesped.nombre} {huesped.apellido}"
+                    }
+                })
+            except Huesped.DoesNotExist:
+                return JsonResponse({
+                    'found': False,
+                    'message': 'No se encontró ningún huésped con ese número de documento'
+                })
+        else:
+            return JsonResponse({
+                'found': False,
+                'message': 'Debe proporcionar un número de documento'
+            })
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
 # Staff Management Views
 @admin_required
 def admin_staff_list(request):

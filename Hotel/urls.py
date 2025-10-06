@@ -29,6 +29,7 @@ urlpatterns = [
     path("hotel-admin/reservations/", views.admin_reservations_list, name="admin_reservations_list"),
     path("hotel-admin/reservations/create/", views.admin_reservation_create, name="admin_reservation_create"),
     path("hotel-admin/reservations/<int:reservation_id>/", views.admin_reservation_detail, name="admin_reservation_detail"),
+    path("hotel-admin/ajax/buscar-huesped/", views.buscar_huesped_ajax, name="buscar_huesped_ajax"),
     
     # Staff Management
     path("hotel-admin/staff/", views.admin_staff_list, name="admin_staff_list"),
