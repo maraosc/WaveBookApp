@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Buscar Habitaciones - Hotel Pacific Reef{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">Buscar Habitaciones Disponibles</h2>
+
+    <!-- Formulario de búsqueda -->
+    <form method="get" class="row justify-content-center mb-5">
+        <div class="col-md-3">
+            <label for="fecha_inicio" class="form-label">Fecha de ingreso</label>
+            <input type="date" class="form-control" name="fecha_inicio" required
+                   value="{{ request.GET.fecha_inicio }}">
+        </div>
+        <div class="col-md-3">
+            <label for="fecha_fin" class="form-label">Fecha de salida</label>
+            <input type="date" class="form-control" name="fecha_fin" required
+                   value="{{ request.GET.fecha_fin }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-warning w-100">Buscar</button>
+        </div>
+    </form>
+
+    {% if habitaciones %}
+    <div class="row">
+        {% for habitacion in habitaciones %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                {% if habitacion.imagen_principal %}
+                <img src="{{ habitacion.imagen_principal.url }}" class="card-img-top" 
+                     alt="Habitación {{ habitacion.numero }}">
+                {% else %}
+                <img src="{% static 'img/default-room.jpg' %}" class="card-img-top" 
+                     alt="Habitación {{ habitacion.numero }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">Habitación {{ habitacion.numero }}</h5>
+                    <p class="text-muted mb-1">Categoría: {{ habitacion.categoria }}</p>
+                    <p>{{ habitacion.descripcion|default:"Habitación cómoda y equipada." }}</p>
+                    <p><strong>${{ habitacion.precio_diario }}</strong> / noche</p>
+
+                    <!-- Formulario para reservar -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="habitacion_id" value="{{ habitacion.id }}">
+                        <input type="hidden" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+                        <input type="hidden" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+                        <button type="submit" class="btn btn-primary w-100">Reservar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        {% if request.GET.fecha_inicio and request.GET.fecha_fin %}
+            <p class="text-center text-muted">No hay habitaciones disponibles para esas fechas.</p>
+        {% endif %}
+    {% endif %}
+
+    <div style="height: 170px;"></div>
+</div>
+{% endblock %}

@@ -643,3 +643,93 @@ def admin_audit_log(request):
     return render(request, "admin/audit_log.html", {
         'page_obj': page_obj
     })
+
+def buscar_habitaciones(request):
+    habitaciones_disponibles = []
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+
+    if fecha_inicio and fecha_fin:
+        fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+
+        # Excluir habitaciones ya reservadas en el rango
+        habitaciones_disponibles = Habitacion.objects.exclude(
+            id__in=ReservaHabitacion.objects.filter(
+                reserva__fecha_inicio__lte=fecha_fin,
+                reserva__fecha_fin__gte=fecha_inicio
+            ).values_list('habitacion_id', flat=True)
+        ).filter(estado='Disponible')
+
+    if request.method == "POST":
+        # Validar sesión
+        if not request.session.get("huesped_id"):
+            messages.warning(request, "Debe iniciar sesión para realizar una reserva.")
+            return redirect("login")
+
+        habitacion_id = request.POST.get("habitacion_id")
+        fecha_inicio = datetime.strptime(request.POST.get("fecha_inicio"), "%Y-%m-%d").date()
+        fecha_fin = datetime.strptime(request.POST.get("fecha_fin"), "%Y-%m-%d").date()
+        dias = (fecha_fin - fecha_inicio).days or 1
+
+        habitacion = Habitacion.objects.get(id=habitacion_id)
+        huesped = Huesped.objects.get(id=request.session["huesped_id"])
+        total = habitacion.precio_diario * dias
+
+        # Crear reserva
+        reserva = Reserva.objects.create(
+            codigo_reserva=str(uuid.uuid4())[:8],
+            huesped=huesped,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            total=total,
+            estado='Pendiente'
+        )
+
+        # Asociar la habitación a la reserva
+        ReservaHabitacion.objects.create(
+            reserva=reserva,
+            habitacion=habitacion,
+            precio_por_noche=habitacion.precio_diario
+        )
+
+        # Cambiar estado de la habitación a “Reservada”
+        habitacion.estado = 'Reservada'
+        habitacion.save()
+
+        messages.success(request, f"Reserva creada con éxito para la habitación {habitacion.numero}.")
+        return redirect("ver_reservas")
+
+    return render(request, "habitaciones.html", {"habitaciones": habitaciones_disponibles})
+
+
+def ver_reservas(request):
+    if not request.session.get("huesped_id"):
+        messages.warning(request, "Debe iniciar sesión para ver sus reservas.")
+        return redirect("login")
+
+    huesped = Huesped.objects.get(id=request.session["huesped_id"])
+    reservas_list = Reserva.objects.filter(huesped=huesped).order_by("-fecha_creacion")
+
+    return render(request, "reservas.html", {"reservas": reservas_list})
+
+def cancelar_reserva(request, reserva_id):
+    if not request.session.get("huesped_id"):
+        messages.warning(request, "Debe iniciar sesión para cancelar una reserva.")
+        return redirect("login")
+
+    reserva = Reserva.objects.get(id=reserva_id)
+    if reserva.huesped.id != request.session["huesped_id"]:
+        messages.error(request, "No puedes cancelar esta reserva.")
+        return redirect("ver_reservas")
+
+    # Cambiar estado de la reserva y liberar la habitación
+    reserva.estado = "Cancelada"
+    reserva.save()
+    for rh in reserva.habitaciones.all():
+        habitacion = rh.habitacion
+        habitacion.estado = "Disponible"
+        habitacion.save()
+
+    messages.success(request, f"Reserva {reserva.codigo_reserva} cancelada correctamente.")
+    return redirect("ver_reservas")
