@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis Reservas - Hotel Pacific Reef{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">Mis Reservas</h2>
+
+    {% if reservas %}
+    <div class="row">
+        {% for reserva in reservas %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Reserva {{ reserva.codigo_reserva }}</h5>
+                    <p class="text-muted mb-1">Estado: {{ reserva.estado }}</p>
+                    <p>Desde: {{ reserva.fecha_inicio }} hasta: {{ reserva.fecha_fin }}</p>
+                    <p>Total: <strong>${{ reserva.total }}</strong></p>
+
+                    <h6>Habitaciones:</h6>
+                    <ul>
+                        {% for rh in reserva.habitaciones.all %}
+                        <li>Habitación {{ rh.habitacion.numero }} - {{ rh.habitacion.categoria }} - ${{ rh.precio_por_noche }}/noche</li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Opcional: botón para cancelar reserva -->
+                    {% if reserva.estado == 'Pendiente' %}
+                    <form method="post" action="{% url 'cancelar_reserva' reserva.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Cancelar Reserva</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="text-center text-muted">No tienes reservas realizadas.</p>
+    {% endif %}
+</div>
+{% endblock %}

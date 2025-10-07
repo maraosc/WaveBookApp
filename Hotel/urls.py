@@ -6,6 +6,8 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register_view, name="register"),
+    path("habitaciones/", views.buscar_habitaciones, name="buscar_habitaciones"),
+    path("reservas/", views.ver_reservas, name="ver_reservas"),
     
     # Test URL
     path("test-admin/", views.test_admin_view, name="test_admin"),
@@ -38,4 +40,7 @@ urlpatterns = [
     # Reports
     path("hotel-admin/reports/", views.admin_reports, name="admin_reports"),
     path("hotel-admin/audit/", views.admin_audit_log, name="admin_audit_log"),
+
+    # Reservation actions
+    path('reservas/cancelar/<int:reserva_id>/', views.cancelar_reserva, name='cancelar_reserva'),
 ]
