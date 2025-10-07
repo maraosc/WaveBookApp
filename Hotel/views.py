@@ -263,7 +263,7 @@ def admin_room_detail(request, room_id):
             'Administrador': ['Disponible', 'Ocupada', 'Limpieza', 'Mantenimiento', 'Reservada'],
             'Mantenimiento': ['Disponible'],  # Solo puede marcar como disponible cuando ve habitaciones en mantenimiento
             'Limpieza': ['Disponible'],       # Solo puede marcar como disponible cuando ve habitaciones en limpieza
-            'Recepcionista': []  # Solo puede ver, no cambiar estados
+            'Recepcionista': ['Disponible', 'Ocupada', 'Limpieza', 'Reservada']  # Puede cambiar estados operativos (no mantenimiento)
         }
         
         if user_role in allowed_statuses and new_status in allowed_statuses[user_role]:

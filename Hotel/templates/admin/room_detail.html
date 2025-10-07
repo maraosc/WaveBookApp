@@ -133,11 +133,44 @@
                                     Esta habitación pasará a estado "Disponible" y estará lista para huéspedes.
                                 </small>
                             
-                            <!-- Recepcionista solo puede ver, no cambiar estados -->
+                            <!-- Recepcionista puede cambiar estados operativos -->
                             {% elif request.session.admin_rol == 'Recepcionista' %}
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    Como recepcionista, puedes ver el estado de las habitaciones pero no modificarlo.
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Cambiar Estado de Habitación:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% if room.estado != 'Disponible' %}
+                                        <button type="submit" name="status" value="Disponible" 
+                                                class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>Disponible
+                                        </button>
+                                        {% endif %}
+                                        
+                                        {% if room.estado != 'Ocupada' %}
+                                        <button type="submit" name="status" value="Ocupada" 
+                                                class="btn btn-danger btn-sm">
+                                            <i class="fas fa-user me-1"></i>Ocupada
+                                        </button>
+                                        {% endif %}
+                                        
+                                        {% if room.estado != 'Limpieza' %}
+                                        <button type="submit" name="status" value="Limpieza" 
+                                                class="btn btn-info btn-sm">
+                                            <i class="fas fa-spray-can me-1"></i>Limpieza
+                                        </button>
+                                        {% endif %}
+                                        
+                                        {% if room.estado != 'Reservada' %}
+                                        <button type="submit" name="status" value="Reservada" 
+                                                class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-calendar me-1"></i>Reservada
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted mt-2 d-block">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Como recepcionista, puedes cambiar el estado de las habitaciones según las necesidades operativas.
+                                        <br><small class="text-warning">Nota: No puedes cambiar habitaciones a estado de "Mantenimiento" (solo el administrador).</small>
+                                    </small>
                                 </div>
                             {% endif %}
                         </div>
