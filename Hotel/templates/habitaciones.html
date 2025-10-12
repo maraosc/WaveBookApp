@@ -4,63 +4,177 @@
 {% block title %}Buscar Habitaciones - Hotel Pacific Reef{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="text-center mb-4">Buscar Habitaciones Disponibles</h2>
-
-    <!-- Formulario de búsqueda -->
-    <form method="get" class="row justify-content-center mb-5">
-        <div class="col-md-3">
-            <label for="fecha_inicio" class="form-label">Fecha de ingreso</label>
-            <input type="date" class="form-control" name="fecha_inicio" required
-                   value="{{ request.GET.fecha_inicio }}">
-        </div>
-        <div class="col-md-3">
-            <label for="fecha_fin" class="form-label">Fecha de salida</label>
-            <input type="date" class="form-control" name="fecha_fin" required
-                   value="{{ request.GET.fecha_fin }}">
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-warning w-100">Buscar</button>
-        </div>
-    </form>
-
-    {% if habitaciones %}
-    <div class="row">
-        {% for habitacion in habitaciones %}
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100">
-                {% if habitacion.imagen_principal %}
-                <img src="{{ habitacion.imagen_principal.url }}" class="card-img-top" 
-                     alt="Habitación {{ habitacion.numero }}">
-                {% else %}
-                <img src="{% static 'img/default-room.jpg' %}" class="card-img-top" 
-                     alt="Habitación {{ habitacion.numero }}">
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title">Habitación {{ habitacion.numero }}</h5>
-                    <p class="text-muted mb-1">Categoría: {{ habitacion.categoria }}</p>
-                    <p>{{ habitacion.descripcion|default:"Habitación cómoda y equipada." }}</p>
-                    <p><strong>${{ habitacion.precio_diario }}</strong> / noche</p>
-
-                    <!-- Formulario para reservar -->
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="habitacion_id" value="{{ habitacion.id }}">
-                        <input type="hidden" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
-                        <input type="hidden" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
-                        <button type="submit" class="btn btn-primary w-100">Reservar</button>
-                    </form>
-                </div>
+<!-- Hero Section -->
+<div class="search-hero">
+    <div class="hero-overlay"></div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h1 class="hero-title">Encuentra tu Habitación Perfecta</h1>
+                <p class="hero-subtitle">Descubre el lujo y confort que Pacific Reef tiene para ti</p>
             </div>
         </div>
-        {% endfor %}
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Formulario de búsqueda mejorado -->
+    <div class="search-card">
+        <div class="search-card-header">
+            <i class="fas fa-search me-2"></i>
+            <h3 class="mb-0">Buscar Disponibilidad</h3>
+        </div>
+        
+        <form method="get" class="search-form">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label for="fecha_inicio" class="form-label">
+                        <i class="fas fa-calendar-alt me-1"></i>Fecha de Entrada
+                    </label>
+                    <input type="date" class="form-control search-input" name="fecha_inicio" 
+                           id="fecha_inicio" required value="{{ request.GET.fecha_inicio }}">
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <label for="fecha_fin" class="form-label">
+                        <i class="fas fa-calendar-check me-1"></i>Fecha de Salida
+                    </label>
+                    <input type="date" class="form-control search-input" name="fecha_fin" 
+                           id="fecha_fin" required value="{{ request.GET.fecha_fin }}">
+                </div>
+                <div class="col-lg-4">
+                    <button type="submit" class="btn btn-search w-100">
+                        <i class="fas fa-search me-2"></i>Buscar Habitaciones
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resultados de búsqueda -->
+    {% if habitaciones %}
+    <div class="results-section">
+        <div class="results-header">
+            <h4><i class="fas fa-bed me-2"></i>Habitaciones Disponibles</h4>
+            <p class="text-muted">{{ habitaciones|length }} habitación{{ habitaciones|length|pluralize:"es" }} encontrada{{ habitaciones|length|pluralize:"s" }} para tus fechas</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for habitacion in habitaciones %}
+            <div class="col-xl-4 col-lg-6 col-md-6">
+                <div class="room-card">
+                    <div class="room-image">
+                        {% if habitacion.imagen_principal %}
+                        <img src="{{ habitacion.imagen_principal.url }}" class="card-img-top" 
+                             alt="Habitación {{ habitacion.numero }}">
+                        {% else %}
+                        <img src="{% static 'img/default-room.jpg' %}" class="card-img-top" 
+                             alt="Habitación {{ habitacion.numero }}">
+                        {% endif %}
+                        <div class="room-number">{{ habitacion.numero }}</div>
+                        <div class="room-category">{{ habitacion.categoria }}</div>
+                    </div>
+                    
+                    <div class="room-content">
+                        <div class="room-header">
+                            <h5 class="room-title">Habitación {{ habitacion.numero }}</h5>
+                            <div class="room-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        
+                        <p class="room-description">
+                            {{ habitacion.descripcion|default:"Habitación elegante con todas las comodidades modernas, vista al océano y ambiente relajante perfecto para tu estadía." }}
+                        </p>
+                        
+                        <div class="room-features">
+                            <div class="feature">
+                                <i class="fas fa-users"></i>
+                                <span>{{ habitacion.capacidad }} personas</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-wifi"></i>
+                                <span>WiFi gratis</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-tv"></i>
+                                <span>Smart TV</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-snowflake"></i>
+                                <span>A/C</span>
+                            </div>
+                        </div>
+                        
+                        <div class="room-footer">
+                            <div class="price-section">
+                                <span class="price-label">Desde</span>
+                                <span class="price">${{ habitacion.precio_diario }}</span>
+                                <span class="price-period">/ noche</span>
+                            </div>
+                            
+                            <!-- Formulario para reservar -->
+                            <form method="post" class="reservation-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="habitacion_id" value="{{ habitacion.id }}">
+                                <input type="hidden" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+                                <input type="hidden" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+                                <button type="submit" class="btn btn-reserve">
+                                    <i class="fas fa-calendar-plus me-2"></i>Reservar Ahora
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% else %}
         {% if request.GET.fecha_inicio and request.GET.fecha_fin %}
-            <p class="text-center text-muted">No hay habitaciones disponibles para esas fechas.</p>
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="fas fa-bed"></i>
+            </div>
+            <h4>No hay habitaciones disponibles</h4>
+            <p class="text-muted">Lo sentimos, no encontramos habitaciones disponibles para las fechas seleccionadas.</p>
+            <p class="mb-4">Te sugerimos probar con fechas diferentes o contactarnos directamente.</p>
+            <a href="{% url 'habitaciones' %}" class="btn btn-outline-primary">
+                <i class="fas fa-redo me-2"></i>Nueva Búsqueda
+            </a>
+        </div>
+        {% else %}
+        <div class="search-prompt">
+            <div class="search-prompt-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h4>Comienza tu búsqueda</h4>
+            <p class="text-muted">Selecciona tus fechas de entrada y salida para encontrar las mejores habitaciones disponibles.</p>
+        </div>
         {% endif %}
     {% endif %}
+</div>
 
-    <div style="height: 170px;"></div>
+<!-- CTA Section -->
+<div class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h3>¿Necesitas ayuda con tu reserva?</h3>
+                <p>Nuestro equipo está disponible 24/7 para asistirte</p>
+                <div class="cta-buttons">
+                    <a href="tel:+56912345678" class="btn btn-cta-primary">
+                        <i class="fas fa-phone me-2"></i>Llamar Ahora
+                    </a>
+                    <a href="mailto:info@pacificreef.com" class="btn btn-cta-secondary">
+                        <i class="fas fa-envelope me-2"></i>Enviar Email
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
